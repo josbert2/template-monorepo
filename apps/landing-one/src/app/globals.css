@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS propio de la app: aislado a este proyecto */
+:root {
+  --brand-accent: #111827;
+}
+html, body {
+  height: 100%;
+}
+body {
+  color: #111827;
+  background: #f9fafb;
+}
