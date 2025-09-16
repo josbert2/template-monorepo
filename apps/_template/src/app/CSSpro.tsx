@@ -768,10 +768,10 @@ export default function CSSProEditor() {
                     <div className="bg-gray-900 p-6 rounded ">
                       
                       {/* Margin Top */}
-                      <label data-css-pro-edit-rule="margin-top" data-css-pro-input className="absolute top-2 left-1/2 transform -translate-x-1/2 flex items-center">
+                      <label data-css-pro-edit-rule="margin-top" onMouseDown={(e) => handleSpacingMouseDown('marginTop', e)} data-css-pro-input className="absolute top-2 left-1/2 transform -translate-x-1/2 flex items-center">
                         <span 
                           className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
-                          onMouseDown={(e) => handleSpacingMouseDown('marginTop', e)}
+                          
                           title="Click and drag to change margin-top"
                         >
                           ⇕
