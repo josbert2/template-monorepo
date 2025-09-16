@@ -86,3 +86,7 @@ label[data-css-pro-select], label[data-css-pro-input], label[data-css-pro-color-
     bottom: 0;
     margin: auto;
 }
+
+.cursor-ns-resize{
+    display:none
+}
