@@ -6,23 +6,14 @@
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     'Liberation Mono', 'Courier New', monospace;
-    --color-slate-50: oklch(98.4% 0.003 247.858);
-    --color-slate-200: oklch(92.9% 0.013 255.508);
-    --color-slate-800: oklch(27.9% 0.041 260.031);
-    --color-slate-900: oklch(20.8% 0.042 265.755);
     --color-zinc-200: oklch(92% 0.004 286.32);
     --color-black: #000;
     --color-white: #fff;
     --spacing: 0.25rem;
-    --text-3xl: 1.875rem;
-    --text-4xl: 2.25rem;
-    --text-5xl: 3rem;
-    --font-weight-bold: 700;
     --default-font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --default-mono-font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     'Liberation Mono', 'Courier New', monospace;
-    --color-background: var(--background);
   }
 }
 @layer base {
@@ -206,7 +197,7 @@
   --popover-foreground: oklch(0.141 0.005 285.823);
   --primary: oklch(0.606 0.25 292.717);
   --primary-foreground: oklch(0.979 0.021 166.113);
-  --secondary: oklch(0.967 0.001 286.375);
+  --secondary: oklch(0.6 0.26 14.23);
   --secondary-foreground: oklch(0.183 0.006 285.79);
   --muted: oklch(0.967 0.001 286.375);
   --muted-foreground: oklch(0.552 0.016 285.938);
@@ -244,7 +235,7 @@
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.606 0.25 292.717);
   --primary-foreground: oklch(0.979 0.021 166.113);
-  --secondary: oklch(0.274 0.006 286.033);
+  --secondary: oklch(0.6 0.26 14.23);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.21 0.006 285.885);
   --muted-foreground: oklch(0.705 0.015 286.067);
@@ -275,16 +266,4 @@
     border-color: var(--color-zinc-200, currentColor);
   }
 }
-@layer base {
-  * {
-    border-color: var(--border);
-    outline-color: var(--ring);
-    @supports (color: color-mix(in lab, red, red)) {
-      outline-color: color-mix(in oklab, var(--ring) 50%, transparent);
-    }
-  }
-  body {
-    background-color: var(--background);
-    color: var(--foreground);
-  }
-}
+@layer base;

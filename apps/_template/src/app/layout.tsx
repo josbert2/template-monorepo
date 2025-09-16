@@ -3,6 +3,8 @@ import { ThemeProvider } from "../providers/theme-provider";
 import "@clarity/design-system/styles.css"
 import "@clarity/ui/styles.css"
 import "./globals.css";
+import FontPicker from '../components/FontPicker';
+
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -26,10 +28,11 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
+          <FontPicker />
           {children}
         </ThemeProvider>
       </body>

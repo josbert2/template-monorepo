@@ -1,0 +1,88 @@
+.css-pro-visual-spacing-placeholder.horizontal {
+    width: 53.035%;
+    height: 4px;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+.css-pro-visual-spacing-placeholder.top {
+    top: 0;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.css-pro-visual-spacing-placeholder.left {
+    left: 0;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.css-pro-visual-spacing-placeholder.right {
+    right: 0;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+.css-pro-visual-spacing-placeholder {
+    position: absolute;
+    background: rgba(255, 255, 255, .2);
+    transform: none !important;
+}
+
+
+.css-pro-visual-spacing-box label[data-css-pro-input][data-css-pro-edit-rule="margin-top"], .css-pro-visual-spacing-box label[data-css-pro-input][data-css-pro-edit-rule="margin-bottom"], .css-pro-visual-position-box label[data-css-pro-input][data-css-pro-edit-rule="top"], .css-pro-visual-position-box label[data-css-pro-input][data-css-pro-edit-rule="bottom"] {
+  width: 53.035%;
+  height: 44px;
+  line-height: 44px;
+  text-align: center;
+}
+
+.css-pro-visual-spacing-box label[data-css-pro-input][data-css-pro-edit-rule="margin-top"], .css-pro-visual-position-box label[data-css-pro-input][data-css-pro-edit-rule="top"] {
+  top: 5px;
+}
+.css-pro-visual-spacing-box label[data-css-pro-input][data-css-pro-edit-rule="margin-top"], .css-pro-visual-spacing-box label[data-css-pro-input][data-css-pro-edit-rule="margin-bottom"], .css-pro-visual-position-box label[data-css-pro-input][data-css-pro-edit-rule="top"], .css-pro-visual-position-box label[data-css-pro-input][data-css-pro-edit-rule="bottom"], .css-pro-visual-spacing-box label[data-css-pro-input][data-css-pro-edit-rule="padding-top"], .css-pro-visual-spacing-box label[data-css-pro-input][data-css-pro-edit-rule="padding-bottom"] {
+  position: absolute;
+  left: 50%;
+ 
+}
+label[data-css-pro-input].headless {
+  min-width: 53px;
+}
+label[data-css-pro-visual-radio], label[data-css-pro-visual-button], .tippy-box[data-theme~='css-pro-tippy-with-dropdown'] .tippy-content li, .css-pro-pinned-box button.css-pro-visual-accordion-open-button, #css-pro-css summary, .css-pro-pinned-box summary, body.css-pro-cursor-crosshair *:not(.css-pro-main-dock):not(.css-pro-dock-item):not(.css-pro-dock-hidden-content):not(.css-pro-dock-close-hidden-content):not(.css-pro-ruler-resize-buttons):not(#css-pro-ruler-box):not([class*="pcr-"]):not([class*="css-pro-"]):not([id*="css-pro-"]):not([data-tippy-root]):not([data-tippy-root] *), body.css-pro-cursor-crosshair .css-pro-current, #css-pro-ui-elements.css-pro-cursor-crosshair .css-pro-gradient-controls-overlay, .css-pro-button, button.css-pro-button, .css-pro-dropdown-content label, #css-pro-dock.settings-deep div.css-pro-main-dock label, .css-pro-tabs-nav *, .css-pro-pinned-controls *, .css-pro-pinned-box ul.css-pro-pinned-box-tabs *, #css-pro-buttons img#css-pro-logo, ul.css-pro-background-presets, ul.css-pro-text-shadow-presets, button.css-pro-button.css-pro-copy-button, button.css-pro-button.css-pro-copy-changes-button, label[data-css-pro-select], label[data-css-pro-input], label[data-css-pro-color-input], label[data-css-pro-background-input], label[data-css-pro-text-shadow-input] {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+label[data-css-pro-select], label[data-css-pro-input], label[data-css-pro-color-input], label[data-css-pro-background-input], label[data-css-pro-text-shadow-input] {
+  border-radius: 6px;
+  display: inline-block;
+  box-sizing: border-box;
+  min-width: 85px;
+  font: 400 13.3333px -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  margin: initial;
+  padding: initial;
+  letter-spacing: initial;
+}
+
+
+.css-pro-visual-spacing-placeholder.bottom {
+    bottom: 0;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+.css-pro-visual-spacing-placeholder {
+    position: absolute;
+    background: rgba(255, 255, 255, .2);
+    transform: none !important;
+}
+
+.css-pro-visual-spacing-placeholder.vertical {
+    width: 4px;
+    height: 124px;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+}

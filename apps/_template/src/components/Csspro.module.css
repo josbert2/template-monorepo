@@ -1,0 +1,17 @@
+.cssProVisualAccordionContent, .cssProVisualScrollablePresets {
+    transition: all 100ms ease-in-out;
+    opacity: 1;
+    overflow: hidden;
+    padding: 2px;
+    padding-bottom: 15px;
+}
+
+.cssProVisualSpacingBox {
+    width: 100%;
+ 
+    border: 1px solid rgba(255, 255, 255, .15);
+    margin-bottom: 25px;
+    position: relative;
+    border-radius: 10px;
+}
+
