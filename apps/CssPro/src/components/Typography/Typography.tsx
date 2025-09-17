@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
-import FontPicker from 'react-fontpicker-ts'
-import 'react-fontpicker-ts/dist/index.css'
+import React, { useRef, useEffect, useState } from 'react';
 import { AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Underline, Type } from 'lucide-react';
+import '@simonwep/pickr/dist/themes/nano.min.css';
+import Pickr from '@simonwep/pickr/dist/pickr.es5.min';
+
 
 interface TypographyValues {
   fontFamily: string;
@@ -29,11 +30,25 @@ interface TypographyProps {
 }
 
 export default function Typography({ values, onChange, onFontSizeChange, onFontSizeUnitChange }: TypographyProps) {
-  const handleColorChange = () => {
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  console.log(Pickr)
+  const commonColors = [
+    '#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#FFFFFF',
+    '#FF0000', '#FF6600', '#FFCC00', '#00FF00', '#0066FF', '#6600FF',
+    '#FF0066', '#FF3366', '#FF6699', '#66FF00', '#00FFFF', '#9900FF'
+  ];
+
+  const handleColorSelect = (color: string) => {
+    onChange('color', color);
+    setShowColorPicker(false);
+  };
+
+  const handleCustomColor = () => {
     const newColor = prompt('Enter color (hex, rgb, or name):', values.color);
     if (newColor) {
       onChange('color', newColor);
     }
+    setShowColorPicker(false);
   };
 
   return (
@@ -107,17 +122,48 @@ export default function Typography({ values, onChange, onFontSizeChange, onFontS
 
       {/* Color and Line Height */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
+        <div className="space-y-2 relative">
           <label className="text-xs text-gray-400 uppercase tracking-wide">Color</label>
           <button 
-            onClick={handleColorChange}
-            className="w-full h-10 rounded border border-gray-600 flex items-center px-3 hover:border-gray-500 transition-colors"
+            onClick={() => setShowColorPicker(!showColorPicker)}
+            className="w-full h-10 rounded border border-gray-600 flex items-center px-3 hover:border-gray-500 transition-colors relative"
             style={{ backgroundColor: values.color }}
           >
-            <span className="text-white text-sm font-medium mix-blend-difference">
+            <span className="text-white text-sm font-medium mix-blend-difference flex items-center gap-2">
+              <Palette size={16} />
               {values.color}
             </span>
           </button>
+          
+          {showColorPicker && (
+            <div className="absolute top-full left-0 mt-2 p-3 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 w-64">
+              <div className="grid grid-cols-6 gap-2 mb-3">
+                {commonColors.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => handleColorSelect(color)}
+                    className="w-8 h-8 rounded border-2 border-gray-600 hover:border-gray-400 transition-colors"
+                    style={{ backgroundColor: color }}
+                    title={color}
+                  />
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCustomColor}
+                  className="flex-1 px-3 py-2 bg-gray-700 text-white text-sm rounded hover:bg-gray-600 transition-colors"
+                >
+                  Custom Color
+                </button>
+                <button
+                  onClick={() => setShowColorPicker(false)}
+                  className="px-3 py-2 bg-gray-600 text-white text-sm rounded hover:bg-gray-500 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
         </div>
         
         <div className="space-y-2">
