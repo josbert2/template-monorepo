@@ -2,7 +2,12 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronDown, ChevronRight, Eye, Copy, X, Target, Code, Palette, Settings, Trash2 } from 'lucide-react';
 import styles from "../components/Csspro.module.css";
 import  "../components/Csspro.css";
-
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../components/ui/accordion"
 
 interface CSSProperty {
   name: string;
@@ -1044,6 +1049,12 @@ export default function CSSProEditor() {
                       <span className="absolute top-1 left-2 text-xs text-gray-400 font-medium">Margin</span>
                     </div>
                   </div>
+                  <Accordion>
+                    <AccordionItem>
+                      <AccordionTrigger>Accordion Trigger</AccordionTrigger>
+                      <AccordionContent>Accordion Content</AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
 
                   {sections.map((section, sectionIndex) => (
                     <div key={section.title} className="border-b border-gray-700 last:border-b-0">
