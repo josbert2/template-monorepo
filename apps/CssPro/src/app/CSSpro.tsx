@@ -2,14 +2,24 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronDown, ChevronRight, Eye, Copy, X, Target, Code, Palette, Settings, Trash2 } from 'lucide-react';
 import styles from "../components/Csspro.module.css";
 import  "../components/Csspro.css";
-import {
+import {  
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "../components/ui/accordion"
 
-import Typography from "../components/Typography/Typography";
+import Typography from '../components/Typography/Typography';
+import Background, { BackgroundLayer } from '../components/Background/Background';
+import Filters, { FiltersValues } from '../components/Filters/Filters';
+import Shadows, { ShadowsValues } from '../components/Shadows/Shadows';
+import BoxShadows from '../components/BoxShadows/BoxShadows';
+import Positioning, { PositioningValues } from '../components/Positioning/Positioning';
+import Border, { BorderValues } from '../components/Border/Border';
+import Display, { DisplayValues } from '../components/Display/Display';
+import CustomPickColor from '../components/ui/CustomPickColor';
+
+// ... (rest of the code remains the same)
 
 
 
@@ -103,6 +113,107 @@ export default function CSSProEditor() {
     fontStyle: 'normal',
     useBackgroundAsText: false
   });
+  const [backgroundValues, setBackgroundValues] = useState<BackgroundLayer[]>([]);
+  const [filtersValues, setFiltersValues] = useState<FiltersValues>({
+    blur: 0,
+    contrast: 1,
+    brightness: 1,
+    saturate: 1,
+    invert: 0,
+    grayscale: 0,
+    sepia: 0,
+  });
+
+  const applyFiltersToSelected = useCallback((vals: FiltersValues) => {
+    if (!selectedElement) return;
+    const parts: string[] = [];
+    parts.push(`blur(${vals.blur}px)`);
+    parts.push(`contrast(${vals.contrast})`);
+    parts.push(`brightness(${vals.brightness})`);
+    parts.push(`saturate(${vals.saturate})`);
+    parts.push(`invert(${vals.invert}%)`);
+    parts.push(`grayscale(${vals.grayscale}%)`);
+    parts.push(`sepia(${vals.sepia}%)`);
+    const filterValue = parts.join(' ');
+    selectedElement.style.setProperty('filter', filterValue, 'important');
+  }, [selectedElement]);
+
+  const handleFiltersChange = useCallback((property: keyof FiltersValues, value: number) => {
+    setFiltersValues(prev => {
+      const next = { ...prev, [property]: value } as FiltersValues;
+      applyFiltersToSelected(next);
+      return next;
+    });
+  }, [applyFiltersToSelected]);
+  const [shadowsValues, setShadowsValues] = useState<{ layers: { offsetX: number; offsetY: number; blur: number; color: string; }[] }>({
+    layers: [{ offsetX: 1, offsetY: 2, blur: 3, color: 'rgba(0,0,0,0.35)' }],
+  });
+  const applyTextShadowsToSelected = useCallback((vals: { layers: { offsetX: number; offsetY: number; blur: number; color: string; }[] }) => {
+    if (!selectedElement) return;
+    const css = vals.layers.map(l => `${l.offsetX}px ${l.offsetY}px ${l.blur}px ${l.color}`).join(', ');
+    selectedElement.style.setProperty('text-shadow', css || 'none', 'important');
+  }, [selectedElement]);
+  const handleShadowsChange = useCallback((next: { layers: { offsetX: number; offsetY: number; blur: number; color: string; }[] }) => {
+    setShadowsValues(next);
+    applyTextShadowsToSelected(next);
+  }, [applyTextShadowsToSelected]);
+
+  const [boxShadow, setBoxShadow] = useState<string>('none');
+  const handleBoxShadowChange = useCallback((css: string) => {
+    setBoxShadow(css);
+    if (selectedElement) {
+      selectedElement.style.setProperty('box-shadow', css, 'important');
+    }
+  }, [selectedElement]);
+
+  const [positioning, setPositioning] = useState<PositioningValues>({
+    position: 'static',
+    top: 'auto',
+    right: 'auto',
+    bottom: 'auto',
+    left: 'auto',
+  });
+  const handlePositioningChange = useCallback((prop: keyof PositioningValues, value: string) => {
+    setPositioning(prev => ({ ...prev, [prop]: value }));
+    if (!selectedElement) return;
+    if (prop === 'position') {
+      selectedElement.style.setProperty('position', value, 'important');
+    } else {
+      selectedElement.style.setProperty(prop, value, 'important');
+    }
+  }, [selectedElement]);
+
+  const [borderValues, setBorderValues] = useState<BorderValues>({
+    color: '#c0d0d7',
+    width: 1,
+    unit: 'px',
+    style: 'solid',
+  });
+  const handleBorderChange = useCallback((prop: keyof BorderValues, value: any) => {
+    setBorderValues(prev => {
+      const next = { ...prev, [prop]: value };
+      if (selectedElement) {
+        const css = `${next.width}${next.unit} ${next.style} ${next.color}`;
+        selectedElement.style.setProperty('border', css, 'important');
+      }
+      return next;
+    });
+  }, [selectedElement]);
+
+  const [displayValues, setDisplayValues] = useState<DisplayValues>({ display: 'block', opacity: 100 });
+  const handleDisplayChange = useCallback((prop: keyof DisplayValues, value: any) => {
+    setDisplayValues(prev => {
+      const next = { ...prev, [prop]: value };
+      if (selectedElement) {
+        if (prop === 'display') {
+          selectedElement.style.setProperty('display', next.display, 'important');
+        } else if (prop === 'opacity') {
+          selectedElement.style.setProperty('opacity', String(next.opacity / 100), 'important');
+        }
+      }
+      return next;
+    });
+  }, [selectedElement]);
   const [isDragging, setIsDragging] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState({ x: 0, value: 0 });
   const panelRef = useRef<HTMLDivElement>(null);
@@ -253,6 +364,29 @@ export default function CSSProEditor() {
       fontStyle: computedStyles.fontStyle,
       useBackgroundAsText: computedStyles.backgroundClip === 'text'
     });
+    
+    // Inicializar valores de fondo (capas)
+    const layers: BackgroundLayer[] = [];
+    const bgImage = computedStyles.backgroundImage;
+    const bgColor = computedStyles.backgroundColor;
+    if (bgImage && bgImage !== 'none') {
+      // extraer url("...") si existe
+      const match = bgImage.match(/url\(["']?(.*?)["']?\)/);
+      const url = match ? match[1] : '';
+      layers.push({
+        id: 'img-0',
+        type: 'image',
+        enabled: true,
+        imageUrl: url,
+        repeat: (computedStyles.backgroundRepeat as any) || 'no-repeat',
+        size: (computedStyles.backgroundSize as any) || 'auto',
+        position: (computedStyles.backgroundPosition as any) || 'center',
+      });
+    }
+    if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
+      layers.push({ id: 'color-0', type: 'color', enabled: true, color: bgColor });
+    }
+    setBackgroundValues(layers);
     
     // Desactivar el modo inspector después de seleccionar un elemento
     setIsInspectorMode(false);
@@ -577,6 +711,17 @@ export default function CSSProEditor() {
     css += '}';
     return css;
   }, [selectedElement, sections, elementInfo]);
+
+  // Handle background changes from component (shorthand and lists)
+  const handleBackgroundChange = useCallback((css: { background: string; backgroundRepeat: string; backgroundSize: string; backgroundPosition: string; }, layers: BackgroundLayer[]) => {
+    setBackgroundValues(layers);
+    if (selectedElement) {
+      selectedElement.style.setProperty('background', css.background, 'important');
+      selectedElement.style.setProperty('background-repeat', css.backgroundRepeat, 'important');
+      selectedElement.style.setProperty('background-size', css.backgroundSize, 'important');
+      selectedElement.style.setProperty('background-position', css.backgroundPosition, 'important');
+    }
+  }, [selectedElement]);
 
   return (
     <>
@@ -1155,6 +1300,69 @@ export default function CSSProEditor() {
                         />
                       </AccordionContent>
                     </AccordionItem>
+                    <AccordionItem value="item-2">
+                      <AccordionTrigger>Background</AccordionTrigger>
+                      <AccordionContent>
+                        <Background 
+                          value={backgroundValues}
+                          onChange={handleBackgroundChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="item-3">
+                      <AccordionTrigger>Filters</AccordionTrigger>
+                      <AccordionContent>
+                        <Filters 
+                          values={filtersValues}
+                          onChange={handleFiltersChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="item-4">
+                      <AccordionTrigger>Text shadow</AccordionTrigger>
+                      <AccordionContent>
+                        <Shadows 
+                          values={shadowsValues}
+                          onChange={handleShadowsChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="item-5">
+                      <AccordionTrigger>Box shadow</AccordionTrigger>
+                      <AccordionContent>
+                        <BoxShadows 
+                          value={boxShadow}
+                          onChange={handleBoxShadowChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="item-6">
+                      <AccordionTrigger>Positioning</AccordionTrigger>
+                      <AccordionContent>
+                        <Positioning 
+                          values={positioning}
+                          onChange={handlePositioningChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="item-7">
+                      <AccordionTrigger>Border</AccordionTrigger>
+                      <AccordionContent>
+                        <Border 
+                          values={borderValues}
+                          onChange={handleBorderChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="item-8">
+                      <AccordionTrigger>Display</AccordionTrigger>
+                      <AccordionContent>
+                        <Display 
+                          values={displayValues}
+                          onChange={handleDisplayChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
                   </Accordion>
 
                   {sections.map((section, sectionIndex) => (
@@ -1256,6 +1464,7 @@ export default function CSSProEditor() {
           💡 Hold <kbd className="bg-green-700 px-1 rounded">Ctrl</kbd> + Click to select another element
         </div>
       )}
+      <CustomPickColor  />
     </>
   );
 };
