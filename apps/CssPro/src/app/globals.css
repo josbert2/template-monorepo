@@ -6,6 +6,8 @@
 
 @theme{
   --color-avocado-500: red;
+  --color-primary-bg: #121315;
+  --color-secondary-bg: #ffffff08;
 }
 
 body::before {

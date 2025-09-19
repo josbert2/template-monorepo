@@ -18,6 +18,7 @@ import Positioning, { PositioningValues } from '../components/Positioning/Positi
 import Border, { BorderValues } from '../components/Border/Border';
 import Display, { DisplayValues } from '../components/Display/Display';
 import CustomPickColor from '../components/ui/CustomPickColor';
+import Dock from '../components/Dock/Dock';
 
 // ... (rest of the code remains the same)
 
@@ -214,10 +215,17 @@ export default function CSSProEditor() {
       return next;
     });
   }, [selectedElement]);
+  const [panelPosition, setPanelPosition] = useState({ x: 20, y: 20 });
+  const [isDraggingPanel, setIsDraggingPanel] = useState(false);
+  const [panelDragOffset, setPanelDragOffset] = useState({ x: 0, y: 0 });
+  const [panelSize, setPanelSize] = useState({ width: 384, height: window.innerHeight - 32 });
   const [isDragging, setIsDragging] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState({ x: 0, value: 0 });
   const panelRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  
+  // Estado para la herramienta activa del dock
+  const [activeDockTool, setActiveDockTool] = useState('inspector');
 
   // Crear overlay para resaltar elemento seleccionado
   const createOverlay = useCallback(() => {
@@ -446,6 +454,49 @@ export default function CSSProEditor() {
     ));
   }, [selectedElement, sections]);
 
+  // Función para manejar el inicio del drag del panel
+  const handlePanelDragStart = useCallback((e: React.MouseEvent) => {
+    // Solo permitir drag desde el header o el drag handle
+    const target = e.target as HTMLElement;
+    const isHeader = target.closest('.panel-header') || target.classList.contains('drag-handle');
+    
+    if (isHeader) {
+      e.preventDefault();
+      setIsDraggingPanel(true);
+      const rect = panelRef.current?.getBoundingClientRect();
+      if (rect) {
+        setPanelDragOffset({
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        });
+      }
+      document.body.style.cursor = 'grabbing';
+    }
+  }, []);
+
+  // Función para manejar el movimiento del drag del panel
+  const handlePanelDragMove = useCallback((e: MouseEvent) => {
+    if (!isDraggingPanel) return;
+    
+    const newX = e.clientX - panelDragOffset.x;
+    const newY = e.clientY - panelDragOffset.y;
+    
+    // Límites de la ventana
+    const maxX = window.innerWidth - 400; // ancho del panel
+    const maxY = window.innerHeight - 600; // alto del panel
+    
+    setPanelPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  }, [isDraggingPanel, panelDragOffset]);
+
+  // Función para terminar el drag del panel
+  const handlePanelDragEnd = useCallback(() => {
+    setIsDraggingPanel(false);
+    document.body.style.cursor = 'default';
+  }, []);
+
   // Funciones para manejar el arrastre de spacing
   const handleSpacingMouseDown = useCallback((property: string, event: React.MouseEvent) => {
     event.preventDefault();
@@ -644,6 +695,20 @@ export default function CSSProEditor() {
     }
   }, [selectedElement, handleQuickSelect]);
 
+  // Efectos para el drag del panel
+  useEffect(() => {
+    if (isDraggingPanel) {
+      document.addEventListener('mousemove', handlePanelDragMove);
+      document.addEventListener('mouseup', handlePanelDragEnd);
+      document.body.style.userSelect = 'none';
+      return () => {
+        document.removeEventListener('mousemove', handlePanelDragMove);
+        document.removeEventListener('mouseup', handlePanelDragEnd);
+        document.body.style.userSelect = 'auto';
+      };
+    }
+  }, [isDraggingPanel, handlePanelDragMove, handlePanelDragEnd]);
+
   // Efectos para el arrastre de spacing
   useEffect(() => {
     if (isDragging) {
@@ -691,6 +756,16 @@ export default function CSSProEditor() {
     };
   }, []);
 
+  const handleDockToolSelect = (toolId: string) => {
+    setActiveDockTool(toolId);
+    // Aquí puedes agregar lógica específica para cada herramienta
+    console.log(`Herramienta seleccionada: ${toolId}`);
+  };
+
+  const handleInspectorToggle = () => {
+    setIsInspectorMode(!isInspectorMode);
+  };
+
   // Generar CSS code
   const generateCSS = useCallback(() => {
     if (!selectedElement || sections.length === 0) return '';
@@ -725,13 +800,43 @@ export default function CSSProEditor() {
 
   return (
     <>
-      {/* Panel lateral */}
+      {/* Dock Flotante */}
+      <Dock 
+        onToolSelect={handleDockToolSelect}
+        activeTool={activeDockTool}
+        inspectorMode={isInspectorMode}
+        onInspectorToggle={handleInspectorToggle}
+      />
+
+      {/* Panel lateral arrastrable */}
       <div 
         ref={panelRef}
-        className="fixed top-0 right-0 w-96 h-full bg-gray-800 border-l border-gray-700 text-white font-sans z-[9999] flex flex-col shadow-2xl"
+        className={`fixed w-96 h-[calc(100vh-2rem)] bg-primary-bg border border-secondary-bg text-white font-sans z-[9999] flex flex-col shadow-2xl rounded-lg overflow-hidden transition-all duration-200 ${
+          isDraggingPanel ? 'shadow-3xl scale-105' : 'hover:shadow-3xl'
+        }`}
+        style={{
+          left: `${panelPosition.x}px`,
+          top: `${panelPosition.y}px`,
+          resize: 'both',
+          minWidth: '320px',
+          minHeight: '400px',
+          maxWidth: '90vw',
+          maxHeight: '90vh'
+        }}
       >
+        {/* Drag handle visible */}
+        <div 
+          className="drag-handle absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gray-600 rounded-full cursor-grab hover:bg-gray-500 transition-colors z-10"
+          onMouseDown={handlePanelDragStart}
+        />
+        
+        {/* Indicador de posición */}
+        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
         {/* Header */}
-        <div className="p-4 border-b border-gray-700 bg-gray-900">
+        <div 
+          className="panel-header p-4 pt-6 border-b border-secondary-bg bg-secondary-bg cursor-grab"
+          onMouseDown={handlePanelDragStart}
+        >
           {selectedElement ? (
             <>
               {/* Element Header with actions */}
@@ -743,22 +848,22 @@ export default function CSSProEditor() {
                 </div>
                 <div className="flex items-center gap-1">
                   <button 
-                    className="p-1 hover:bg-gray-700 rounded"
+                    className="p-2 cursor-pointer hover:bg-secondary-bg rounded"
                     title="Copy element"
                   >
-                    <Copy size={14} className="text-gray-400" />
+                    <Copy size={20} className="text-gray-400" />
                   </button>
                   <button 
-                    className="p-1 hover:bg-gray-700 rounded"
+                    className="p-2 cursor-pointer hover:bg-secondary-bg rounded"
                     title="Expand element"
                   >
-                    <Eye size={14} className="text-gray-400" />
+                    <Eye size={20} className="text-gray-400" />
                   </button>
                   <button 
-                    className="p-1 hover:bg-gray-700 rounded"
+                    className="p-2 cursor-pointer hover:bg-secondary-bg rounded"
                     title="Delete element"
                   >
-                    <Trash2 size={14} className="text-gray-400" />
+                    <Trash2 size={20} className="text-gray-400" />
                   </button>
                   <button 
                     onClick={() => {
@@ -767,10 +872,10 @@ export default function CSSProEditor() {
                       setSections([]);
                       updateOverlay(null);
                     }}
-                    className="p-1 hover:bg-gray-700 rounded"
+                    className="p-2 cursor-pointer hover:bg-secondary-bg rounded"
                     title="Close inspector"
                   >
-                    <X size={14} className="text-gray-400" />
+                    <X size={20} className="text-gray-400" />
                   </button>
                 </div>
               </div>
@@ -1464,7 +1569,7 @@ export default function CSSProEditor() {
           💡 Hold <kbd className="bg-green-700 px-1 rounded">Ctrl</kbd> + Click to select another element
         </div>
       )}
-      <CustomPickColor  />
+      
     </>
   );
 };

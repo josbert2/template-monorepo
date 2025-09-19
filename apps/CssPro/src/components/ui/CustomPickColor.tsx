@@ -110,6 +110,8 @@ export default function AdvancedColorPicker({
   ],
   className
 }: AdvancedColorPickerProps){
+  const isExternalSetRef = useRef(false);
+  const prevCssRef = useRef<string>('');
   /** Modelo color + formato IO */
   const [hsva, setHsva] = useState<HSVA>({ h: 180, s: 0.5, v: 0.7, a: 1 });
   const [format, setFormat] = useState<"HEXA"|"RGBA"|"HSLA">("HEXA");
@@ -135,20 +137,35 @@ export default function AdvancedColorPicker({
   const [noiseOpacity, setNoiseOpacity] = useState(0.35);
 
   /** Parse inicial */
-  useEffect(()=>{
-    if (!value) return;
-    const hex = (value.match(/#([0-9a-f]{3,8})\b/i) || [])[0];
-    if (hex){
-      const rgba = hexToRgba(hex);
-      if (rgba) setHsva(h => rgbaToHsvaSafe(rgba.r, rgba.g, rgba.b, rgba.a, h.h));
-      setTab("solid");
-      return;
+  useEffect(() => {
+  if (!value) return;
+
+  // Detecta tipo
+  const hex = (value.match(/#([0-9a-f]{3,8})\b/i) || [])[0];
+  if (hex) {
+    const rgba = hexToRgba(hex);
+    if (rgba) {
+      const next = rgbaToHsvaSafe(rgba.r, rgba.g, rgba.b, rgba.a, hsva.h);
+      const same =
+        Math.round(next.h) === Math.round(hsva.h) &&
+        Math.round(next.s * 1000) === Math.round(hsva.s * 1000) &&
+        Math.round(next.v * 1000) === Math.round(hsva.v * 1000) &&
+        Math.round(next.a * 1000) === Math.round(hsva.a * 1000);
+
+      if (!same) {
+        isExternalSetRef.current = true;   // <- marcar que viene de props
+        setHsva(next);
+      }
     }
-    if (/linear-gradient\(/i.test(value)) setTab("linear-gradient");
-    else if (/radial-gradient\(/i.test(value)) setTab("radial-gradient");
-    else if (/conic-gradient\(/i.test(value)) setTab("conic-gradient");
-    else if (/url\(/i.test(value)) setTab("image");
-  },[value]);
+    setTab("solid");
+    return;
+  }
+
+  if (/linear-gradient\(/i.test(value)) setTab("linear-gradient");
+  else if (/radial-gradient\(/i.test(value)) setTab("radial-gradient");
+  else if (/conic-gradient\(/i.test(value)) setTab("conic-gradient");
+  else if (/url\(/i.test(value)) setTab("image");
+}, [value]); // <- no incluyas hsva aquí
 
   const rgba = useMemo(()=>hsvaToRgba(hsva.h, hsva.s, hsva.v, hsva.a),[hsva]);
   const hexa = useMemo(()=>rgbaToHexa(rgba.r, rgba.g, rgba.b, rgba.a),[rgba]);
@@ -223,9 +240,18 @@ export default function AdvancedColorPicker({
     return { cssObj, clipboardCss: clipLines.join("\n") };
   },[tab, format, hexa, rgbaStr, hslaStr, gradientList, angle, imageUrl, patternSize, noiseUrl, noiseOpacity, blend, repeat]);
 
-  useEffect(()=>{
+  useEffect(() => {
+    const currentCss = JSON.stringify(cssObj);
+    if (currentCss === prevCssRef.current) return;
+    prevCssRef.current = currentCss;
+
+    // si el último set vino de props, no emitir este tick
+    if (isExternalSetRef.current) {
+      isExternalSetRef.current = false;
+      return;
+    }
     onChange?.(cssObj, clipboardCss);
-  },[cssObj, clipboardCss, onChange]);
+  }, [cssObj, clipboardCss, onChange]);
 
   /** —— UI: SV panel —— */
   const svRef = useRef<HTMLDivElement>(null);
