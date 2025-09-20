@@ -25,6 +25,7 @@
     "postcss": "^8.4.47",
     "radix-ui": "^1.4.3",
     "react": "^18.3.1",
+    "react-aria-components": "^1.12.2",
     "react-dom": "^18.3.1",
     "react-fontpicker-ts": "^1.2.0",
     "tailwindcss": "^4.1.13",

@@ -81,7 +81,7 @@ label[data-css-pro-select], label[data-css-pro-input], label[data-css-pro-color-
 
 .css-pro-visual-spacing-placeholder.vertical {
     width: 4px;
-    height: 124px;
+    height: 53.035%;
     top: 0;
     bottom: 0;
     margin: auto;
@@ -92,5 +92,5 @@ label[data-css-pro-select], label[data-css-pro-input], label[data-css-pro-color-
 }
 
 label[data-css-pro-select]:hover, label[data-css-pro-input]:hover, label[data-css-pro-color-input]:hover, .css-pro-tom-select.css-pro-ts-wrapper.single.input-hidden .css-pro-ts-control:hover {
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, .3);
+    /*box-shadow: 0 0 0 1px rgba(255, 255, 255, .3);*/
 }

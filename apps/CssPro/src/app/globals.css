@@ -8,6 +8,7 @@
   --color-avocado-500: red;
   --color-primary-bg: #121315;
   --color-secondary-bg: #ffffff08;
+  --color-pikend-bg: #E9B3FB;
 }
 
 body::before {
@@ -33,3 +34,8 @@ body::before {
   }
 
 
+
+
+  button[data-state="open"] {
+    @apply bg-secondary-bg;
+  }

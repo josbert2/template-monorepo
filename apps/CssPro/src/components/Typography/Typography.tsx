@@ -3,6 +3,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { AlignLeft, AlignCenter, AlignRight, AlignJustify, Bold, Italic, Underline, Type } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import CustomSelect from '../ui/custom-select';
+import ControlledNumberField from '../ui/controlled-number-field';
+import { Input } from "../ui/input"
 
 
 interface TypographyValues {
@@ -35,6 +38,39 @@ export default function Typography({ values, onChange, onFontSizeChange, onFontS
     '#FF0066', '#FF3366', '#FF6699', '#66FF00', '#00FFFF', '#9900FF'
   ];
 
+  const fontFamilyOptions = [
+    { value: "Arial, sans-serif", label: "Arial" },
+    { value: "Helvetica, sans-serif", label: "Helvetica" },
+    { value: "Times New Roman, serif", label: "Times New Roman" },
+    { value: "Georgia, serif", label: "Georgia" },
+    { value: "Verdana, sans-serif", label: "Verdana" },
+    { value: "Courier New, monospace", label: "Courier New" },
+    { value: "system-ui, sans-serif", label: "System UI" },
+    { value: "Inter, sans-serif", label: "Inter" },
+    { value: "Roboto, sans-serif", label: "Roboto" },
+    { value: "Open Sans, sans-serif", label: "Open Sans" }
+  ];
+
+  const fontWeightOptions = [
+    { value: "100", label: "100 - Thin" },
+    { value: "200", label: "200 - Extra Light" },
+    { value: "300", label: "300 - Light" },
+    { value: "400", label: "400 - Normal" },
+    { value: "500", label: "500 - Medium" },
+    { value: "600", label: "600 - Semi Bold" },
+    { value: "700", label: "700 - Bold" },
+    { value: "800", label: "800 - Extra Bold" },
+    { value: "900", label: "900 - Black" }
+  ];
+
+  const fontSizeUnitOptions = [
+    { value: "px", label: "px" },
+    { value: "em", label: "em" },
+    { value: "rem", label: "rem" },
+    { value: "%", label: "%" },
+    { value: "pt", label: "pt" }
+  ];
+
   const handleColorChange = (color: string) => {
     onChange('color', color);
   };
@@ -43,67 +79,45 @@ export default function Typography({ values, onChange, onFontSizeChange, onFontS
     <div className="space-y-4">
       {/* Font Family */}
       <div className="space-y-2">
-        <label className="text-xs text-gray-400 uppercase tracking-wide">Font Family</label>
-        <select 
+        <label className="text-xs text-gray-400 tracking-wide">Font Family</label>
+        <CustomSelect
           value={values.fontFamily}
-          onChange={(e) => onChange('fontFamily', e.target.value)}
-          className="w-full bg-gray-700 text-white px-3 py-2 rounded text-sm border border-gray-600 focus:border-blue-500 focus:outline-none"
-        >
-          <option value="Arial, sans-serif">Arial</option>
-          <option value="Helvetica, sans-serif">Helvetica</option>
-          <option value="Times New Roman, serif">Times New Roman</option>
-          <option value="Georgia, serif">Georgia</option>
-          <option value="Verdana, sans-serif">Verdana</option>
-          <option value="Courier New, monospace">Courier New</option>
-          <option value="system-ui, sans-serif">System UI</option>
-          <option value="Inter, sans-serif">Inter</option>
-          <option value="Roboto, sans-serif">Roboto</option>
-          <option value="Open Sans, sans-serif">Open Sans</option>
-        </select>
+          onValueChange={(value) => onChange('fontFamily', value)}
+          options={fontFamilyOptions}
+          placeholder="Seleccionar fuente"
+        />
       </div>
 
       {/* Font Weight and Size */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <label className="text-xs text-gray-400 uppercase tracking-wide">Weight</label>
-          <select 
+          <label className="text-xs text-gray-400 tracking-wide">Weight</label>
+          <CustomSelect
             value={values.fontWeight}
-            onChange={(e) => onChange('fontWeight', e.target.value)}
-            className="w-full bg-gray-700 text-white px-3 py-2 rounded text-sm border border-gray-600 focus:border-blue-500 focus:outline-none"
-          >
-            <option value="100">100 - Thin</option>
-            <option value="200">200 - Extra Light</option>
-            <option value="300">300 - Light</option>
-            <option value="400">400 - Normal</option>
-            <option value="500">500 - Medium</option>
-            <option value="600">600 - Semi Bold</option>
-            <option value="700">700 - Bold</option>
-            <option value="800">800 - Extra Bold</option>
-            <option value="900">900 - Black</option>
-          </select>
+            onValueChange={(value) => onChange('fontWeight', value)}
+            options={fontWeightOptions}
+            placeholder="Peso"
+            variant="weight-gradient"
+          />
         </div>
         
         <div className="space-y-2">
-          <label className="text-xs text-gray-400 uppercase tracking-wide">Size</label>
+          <label className="text-xs text-gray-400  tracking-wide">Size</label>
           <div className="flex">
-            <input 
-              type="number" 
+            <ControlledNumberField
               value={values.fontSize.value}
-              onChange={(e) => onFontSizeChange(parseFloat(e.target.value) || 0)}
-              className="w-16 bg-gray-700 text-white px-2 py-2 rounded-l text-sm border border-gray-600 border-r-0 focus:border-blue-500 focus:outline-none"
-              min="0"
+              onChange={onFontSizeChange}
+              minValue={0}
+              maxValue={999}
+              step={1}
+              className="flex-1"
             />
-            <select 
+            <CustomSelect
               value={values.fontSize.unit}
-              onChange={(e) => onFontSizeUnitChange(e.target.value)}
-              className="bg-gray-700 text-white px-2 py-2 rounded-r text-sm border border-gray-600 border-l-0 focus:border-blue-500 focus:outline-none"
-            >
-              <option value="px">px</option>
-              <option value="em">em</option>
-              <option value="rem">rem</option>
-              <option value="%">%</option>
-              <option value="pt">pt</option>
-            </select>
+              onValueChange={(value) => onFontSizeUnitChange(value)}
+              options={fontSizeUnitOptions}
+              className=" ml-1"
+            />
           </div>
         </div>
       </div>
@@ -120,7 +134,7 @@ export default function Typography({ values, onChange, onFontSizeChange, onFontS
               theme="classic"
             />
             <div 
-              className="text-sm text-gray-300 px-3 py-1.5 rounded border border-gray-600 bg-gray-700"
+              className="text-xs text-gray-300 px-3 py-1.5 rounded border border-secondary-bg"
               style={{ color: values.color }}
             >
               {values.color}
@@ -129,12 +143,11 @@ export default function Typography({ values, onChange, onFontSizeChange, onFontS
         </div>
         
         <div className="space-y-2">
-          <label className="text-xs text-gray-400 uppercase tracking-wide">Line Height</label>
-          <input 
+          <label className="text-xs text-gray-400  tracking-wide">Line Height</label>
+          <Input
             type="text" 
             value={values.lineHeight}
             onChange={(e) => onChange('lineHeight', e.target.value)}
-            className="w-full bg-gray-700 text-white px-3 py-2 rounded text-sm border border-gray-600 focus:border-blue-500 focus:outline-none"
             placeholder="1.5, 24px, normal"
           />
         </div>
