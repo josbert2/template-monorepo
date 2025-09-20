@@ -33,9 +33,175 @@ body::before {
     z-index: -1;
   }
 
-
-
-
   button[data-state="open"] {
     @apply bg-secondary-bg;
+  }
+
+  /* Custom Color Picker Styles */
+  .pcr-app {
+      background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%) !important;
+      border: 2px solid #ffffff08 !important;
+      border-radius: 12px !important;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
+      backdrop-filter: blur(10px) !important;
+      padding: 16px !important;
+  }
+
+  .pcr-selection {
+      margin-bottom: 16px !important;
+  }
+
+  .pcr-color-preview {
+      background: transparent !important;
+      border-radius: 8px !important;
+      margin-bottom: 12px !important;
+  }
+
+  .pcr-current-color {
+      border: 2px solid #ffffff08 !important;
+      border-radius: 8px !important;
+      width: 40px !important;
+      height: 40px !important;
+  }
+
+  .pcr-color-palette {
+      border-radius: 8px !important;
+      overflow: hidden !important;
+      margin-bottom: 12px !important;
+      border: 1px solid #ffffff08 !important;
+  }
+
+  .pcr-palette {
+      border-radius: 8px !important;
+  }
+
+  .pcr-color-chooser, .pcr-color-opacity {
+      margin-bottom: 12px !important;
+  }
+
+  .pcr-hue, .pcr-opacity {
+      border-radius: 6px !important;
+      border: 1px solid #ffffff08 !important;
+      height: 12px !important;
+  }
+
+  .pcr-picker {
+      border: 2px solid white !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+      border-radius: 50% !important;
+  }
+
+  .pcr-swatches {
+      display: grid !important;
+      grid-template-columns: repeat(7, 1fr) !important;
+      gap: 6px !important;
+      margin-bottom: 16px !important;
+  }
+
+  .pcr-swatch-button {
+      border: 2px solid #ffffff08 !important;
+      border-radius: 6px !important;
+      width: 28px !important;
+      height: 28px !important;
+      transition: all 0.2s ease !important;
+  }
+
+  .pcr-swatch-button:hover {
+      border-color: #E9B3FB !important;
+      transform: scale(1.1) !important;
+  }
+
+  .pcr-interaction {
+      background: #ffffff05 !important;
+      border-radius: 8px !important;
+      padding: 12px !important;
+      border: 1px solid #ffffff08 !important;
+  }
+
+  .pcr-result {
+      background: #ffffff08 !important;
+      border: 1px solid #ffffff08 !important;
+      border-radius: 6px !important;
+      color: white !important;
+      padding: 8px 12px !important;
+      font-size: 12px !important;
+      margin-bottom: 8px !important;
+      width: 100% !important;
+  }
+
+  .pcr-result:focus {
+      border-color: #E9B3FB !important;
+      outline: none !important;
+  }
+
+  .pcr-type {
+      background: #ffffff08 !important;
+      border: 1px solid #ffffff08 !important;
+      border-radius: 6px !important;
+      color: #888 !important;
+      padding: 6px 12px !important;
+      font-size: 11px !important;
+      margin-right: 4px !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+  }
+
+  .pcr-type:hover {
+      background: #ffffff10 !important;
+      color: white !important;
+  }
+
+  .pcr-type.active {
+      background: #E9B3FB !important;
+      color: black !important;
+      border-color: #E9B3FB !important;
+  }
+
+  .pcr-save, .pcr-cancel {
+      background: #ffffff08 !important;
+      border: 1px solid #ffffff08 !important;
+      border-radius: 6px !important;
+      color: white !important;
+      padding: 8px 16px !important;
+      font-size: 12px !important;
+      margin-top: 8px !important;
+      margin-right: 8px !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+  }
+
+  .pcr-save {
+      background: #E9B3FB !important;
+      color: black !important;
+      border-color: #E9B3FB !important;
+  }
+
+  .pcr-save:hover {
+      background: #d89ef5 !important;
+      transform: translateY(-1px) !important;
+  }
+
+  .pcr-cancel:hover {
+      background: #ffffff15 !important;
+      border-color: #ffffff20 !important;
+  }
+
+  .pcr-eyedropper-button {
+      background: #ffffff08 !important;
+      border: 1px solid #ffffff08 !important;
+      border-radius: 6px !important;
+      color: #888 !important;
+      padding: 8px !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+  }
+
+  .pcr-eyedropper-button:hover {
+      background: #ffffff15 !important;
+      color: white !important;
+  }
+
+  .pcr-eyedropper-button svg {
+      width: 14px !important;
+      height: 14px !important;
   }
