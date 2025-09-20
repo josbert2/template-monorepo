@@ -1,15 +1,35 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronDown, ChevronRight, Eye, Copy, X, Target, Code, Palette, Settings, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Eye, Copy, X, Target, Code, Palette, Settings, Trash2, Plus as PlusIcon, Minus as MinusIcon } from 'lucide-react';
 import styles from "../components/Csspro.module.css";
 import  "../components/Csspro.css";
-import {
+import {  
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "../components/ui/accordion"
 
-import Typography from "../components/Typography/Typography";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select"
+import ReusableNumberField from '../components/ui/input-plus-minus';
+
+import Typography from '../components/Typography/Typography';
+import Background, { BackgroundLayer } from '../components/Background/Background';
+import Filters, { FiltersValues } from '../components/Filters/Filters';
+import Shadows, { ShadowsValues } from '../components/Shadows/Shadows';
+import BoxShadows from '../components/BoxShadows/BoxShadows';
+import Positioning, { PositioningValues } from '../components/Positioning/Positioning';
+import Border, { BorderValues } from '../components/Border/Border';
+import Display, { DisplayValues } from '../components/Display/Display';
+import CustomPickColor from '../components/ui/CustomPickColor';
+import Dock from '../components/Dock/Dock';
+
+// ... (rest of the code remains the same)
 
 
 
@@ -74,9 +94,10 @@ export default function CSSProEditor() {
   const [selectedMedia, setSelectedMedia] = useState('Auto - screen and (min-width: 1024px)');
   const [selectedState, setSelectedState] = useState('None');
   const [editableValues, setEditableValues] = useState({
-    width: 'auto',
-    height: 'auto',
-    borderRadius: '0px'
+    width: { value: 'auto', unit: 'px' },
+    height: { value: 'auto', unit: 'px' },
+    borderRadius: { value: '0', unit: 'px' },
+    rotate: { value: '0', unit: 'deg' }
   });
   const [spacingValues, setSpacingValues] = useState({
     marginTop: { value: 0, unit: 'px' },
@@ -103,10 +124,118 @@ export default function CSSProEditor() {
     fontStyle: 'normal',
     useBackgroundAsText: false
   });
+  const [backgroundValues, setBackgroundValues] = useState<BackgroundLayer[]>([]);
+  const [filtersValues, setFiltersValues] = useState<FiltersValues>({
+    blur: 0,
+    contrast: 1,
+    brightness: 1,
+    saturate: 1,
+    invert: 0,
+    grayscale: 0,
+    sepia: 0,
+  });
+
+  const applyFiltersToSelected = useCallback((vals: FiltersValues) => {
+    if (!selectedElement) return;
+    const parts: string[] = [];
+    parts.push(`blur(${vals.blur}px)`);
+    parts.push(`contrast(${vals.contrast})`);
+    parts.push(`brightness(${vals.brightness})`);
+    parts.push(`saturate(${vals.saturate})`);
+    parts.push(`invert(${vals.invert}%)`);
+    parts.push(`grayscale(${vals.grayscale}%)`);
+    parts.push(`sepia(${vals.sepia}%)`);
+    const filterValue = parts.join(' ');
+    selectedElement.style.setProperty('filter', filterValue, 'important');
+  }, [selectedElement]);
+
+  const handleFiltersChange = useCallback((property: keyof FiltersValues, value: number) => {
+    setFiltersValues(prev => {
+      const next = { ...prev, [property]: value } as FiltersValues;
+      applyFiltersToSelected(next);
+      return next;
+    });
+  }, [applyFiltersToSelected]);
+  const [shadowsValues, setShadowsValues] = useState<{ layers: { offsetX: number; offsetY: number; blur: number; color: string; }[] }>({
+    layers: [{ offsetX: 1, offsetY: 2, blur: 3, color: 'rgba(0,0,0,0.35)' }],
+  });
+  const applyTextShadowsToSelected = useCallback((vals: { layers: { offsetX: number; offsetY: number; blur: number; color: string; }[] }) => {
+    if (!selectedElement) return;
+    const css = vals.layers.map(l => `${l.offsetX}px ${l.offsetY}px ${l.blur}px ${l.color}`).join(', ');
+    selectedElement.style.setProperty('text-shadow', css || 'none', 'important');
+  }, [selectedElement]);
+  const handleShadowsChange = useCallback((next: { layers: { offsetX: number; offsetY: number; blur: number; color: string; }[] }) => {
+    setShadowsValues(next);
+    applyTextShadowsToSelected(next);
+  }, [applyTextShadowsToSelected]);
+
+  const [boxShadow, setBoxShadow] = useState<string>('none');
+  const handleBoxShadowChange = useCallback((css: string) => {
+    setBoxShadow(css);
+    if (selectedElement) {
+      selectedElement.style.setProperty('box-shadow', css, 'important');
+    }
+  }, [selectedElement]);
+
+  const [positioning, setPositioning] = useState<PositioningValues>({
+    position: 'static',
+    top: 'auto',
+    right: 'auto',
+    bottom: 'auto',
+    left: 'auto',
+  });
+  const handlePositioningChange = useCallback((prop: keyof PositioningValues, value: string) => {
+    setPositioning(prev => ({ ...prev, [prop]: value }));
+    if (!selectedElement) return;
+    if (prop === 'position') {
+      selectedElement.style.setProperty('position', value, 'important');
+    } else {
+      selectedElement.style.setProperty(prop, value, 'important');
+    }
+  }, [selectedElement]);
+
+  const [borderValues, setBorderValues] = useState<BorderValues>({
+    color: '#c0d0d7',
+    width: 1,
+    unit: 'px',
+    style: 'solid',
+  });
+  const handleBorderChange = useCallback((prop: keyof BorderValues, value: any) => {
+    setBorderValues(prev => {
+      const next = { ...prev, [prop]: value };
+      if (selectedElement) {
+        const css = `${next.width}${next.unit} ${next.style} ${next.color}`;
+        selectedElement.style.setProperty('border', css, 'important');
+      }
+      return next;
+    });
+  }, [selectedElement]);
+
+  const [displayValues, setDisplayValues] = useState<DisplayValues>({ display: 'block', opacity: 100 });
+  const handleDisplayChange = useCallback((prop: keyof DisplayValues, value: any) => {
+    setDisplayValues(prev => {
+      const next = { ...prev, [prop]: value };
+      if (selectedElement) {
+        if (prop === 'display') {
+          selectedElement.style.setProperty('display', next.display, 'important');
+        } else if (prop === 'opacity') {
+          selectedElement.style.setProperty('opacity', String(next.opacity / 100), 'important');
+        }
+      }
+      return next;
+    });
+  }, [selectedElement]);
+  const [panelPosition, setPanelPosition] = useState({ x: 20, y: 20 });
+  const [isDraggingPanel, setIsDraggingPanel] = useState(false);
+  const [panelDragOffset, setPanelDragOffset] = useState({ x: 0, y: 0 });
+  const [panelSize, setPanelSize] = useState({ width: 384, height: window.innerHeight - 32 });
   const [isDragging, setIsDragging] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState({ x: 0, value: 0 });
   const panelRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  
+  // Estado para la herramienta activa del dock
+  const [activeDockTool, setActiveDockTool] = useState('inspector');
 
   // Crear overlay para resaltar elemento seleccionado
   const createOverlay = useCallback(() => {
@@ -218,10 +347,16 @@ export default function CSSProEditor() {
     
     // Inicializar valores editables con los valores computados actuales
     const computedStyles = window.getComputedStyle(target);
+    const parseValue = (cssValue: string) => {
+      const match = cssValue.match(/^(\d*\.?\d+)(.*)$/);
+      return match ? { value: match[1], unit: match[2] || 'px' } : { value: cssValue, unit: 'px' };
+    };
+    
     setEditableValues({
-      width: computedStyles.width,
-      height: computedStyles.height,
-      borderRadius: computedStyles.borderRadius
+      width: parseValue(computedStyles.width),
+      height: parseValue(computedStyles.height),
+      borderRadius: parseValue(computedStyles.borderRadius),
+      rotate: { value: '0', unit: 'deg' }
     });
     
     // Inicializar valores de spacing
@@ -253,6 +388,29 @@ export default function CSSProEditor() {
       fontStyle: computedStyles.fontStyle,
       useBackgroundAsText: computedStyles.backgroundClip === 'text'
     });
+    
+    // Inicializar valores de fondo (capas)
+    const layers: BackgroundLayer[] = [];
+    const bgImage = computedStyles.backgroundImage;
+    const bgColor = computedStyles.backgroundColor;
+    if (bgImage && bgImage !== 'none') {
+      // extraer url("...") si existe
+      const match = bgImage.match(/url\(["']?(.*?)["']?\)/);
+      const url = match ? match[1] : '';
+      layers.push({
+        id: 'img-0',
+        type: 'image',
+        enabled: true,
+        imageUrl: url,
+        repeat: (computedStyles.backgroundRepeat as any) || 'no-repeat',
+        size: (computedStyles.backgroundSize as any) || 'auto',
+        position: (computedStyles.backgroundPosition as any) || 'center',
+      });
+    }
+    if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
+      layers.push({ id: 'color-0', type: 'color', enabled: true, color: bgColor });
+    }
+    setBackgroundValues(layers);
     
     // Desactivar el modo inspector después de seleccionar un elemento
     setIsInspectorMode(false);
@@ -311,6 +469,49 @@ export default function CSSProEditor() {
       } : section
     ));
   }, [selectedElement, sections]);
+
+  // Función para manejar el inicio del drag del panel
+  const handlePanelDragStart = useCallback((e: React.MouseEvent) => {
+    // Solo permitir drag desde el header o el drag handle
+    const target = e.target as HTMLElement;
+    const isHeader = target.closest('.panel-header') || target.classList.contains('drag-handle');
+    
+    if (isHeader) {
+      e.preventDefault();
+      setIsDraggingPanel(true);
+      const rect = panelRef.current?.getBoundingClientRect();
+      if (rect) {
+        setPanelDragOffset({
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top
+        });
+      }
+      document.body.style.cursor = 'grabbing';
+    }
+  }, []);
+
+  // Función para manejar el movimiento del drag del panel
+  const handlePanelDragMove = useCallback((e: MouseEvent) => {
+    if (!isDraggingPanel) return;
+    
+    const newX = e.clientX - panelDragOffset.x;
+    const newY = e.clientY - panelDragOffset.y;
+    
+    // Límites de la ventana
+    const maxX = window.innerWidth - 400; // ancho del panel
+    const maxY = window.innerHeight - 600; // alto del panel
+    
+    setPanelPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  }, [isDraggingPanel, panelDragOffset]);
+
+  // Función para terminar el drag del panel
+  const handlePanelDragEnd = useCallback(() => {
+    setIsDraggingPanel(false);
+    document.body.style.cursor = 'default';
+  }, []);
 
   // Funciones para manejar el arrastre de spacing
   const handleSpacingMouseDown = useCallback((property: string, event: React.MouseEvent) => {
@@ -465,7 +666,8 @@ export default function CSSProEditor() {
     setEditableValues({
       width: computedStyles.width,
       height: computedStyles.height,
-      borderRadius: computedStyles.borderRadius
+      borderRadius: computedStyles.borderRadius,
+      rotate: { value: '0', unit: 'deg' }
     });
     
     // Inicializar valores de spacing
@@ -509,6 +711,20 @@ export default function CSSProEditor() {
       };
     }
   }, [selectedElement, handleQuickSelect]);
+
+  // Efectos para el drag del panel
+  useEffect(() => {
+    if (isDraggingPanel) {
+      document.addEventListener('mousemove', handlePanelDragMove);
+      document.addEventListener('mouseup', handlePanelDragEnd);
+      document.body.style.userSelect = 'none';
+      return () => {
+        document.removeEventListener('mousemove', handlePanelDragMove);
+        document.removeEventListener('mouseup', handlePanelDragEnd);
+        document.body.style.userSelect = 'auto';
+      };
+    }
+  }, [isDraggingPanel, handlePanelDragMove, handlePanelDragEnd]);
 
   // Efectos para el arrastre de spacing
   useEffect(() => {
@@ -557,6 +773,16 @@ export default function CSSProEditor() {
     };
   }, []);
 
+  const handleDockToolSelect = (toolId: string) => {
+    setActiveDockTool(toolId);
+    // Aquí puedes agregar lógica específica para cada herramienta
+    console.log(`Herramienta seleccionada: ${toolId}`);
+  };
+
+  const handleInspectorToggle = () => {
+    setIsInspectorMode(!isInspectorMode);
+  };
+
   // Generar CSS code
   const generateCSS = useCallback(() => {
     if (!selectedElement || sections.length === 0) return '';
@@ -578,19 +804,61 @@ export default function CSSProEditor() {
     return css;
   }, [selectedElement, sections, elementInfo]);
 
+  // Handle background changes from component (shorthand and lists)
+  const handleBackgroundChange = useCallback((css: { background: string; backgroundRepeat: string; backgroundSize: string; backgroundPosition: string; }, layers: BackgroundLayer[]) => {
+    setBackgroundValues(layers);
+    if (selectedElement) {
+      selectedElement.style.setProperty('background', css.background, 'important');
+      selectedElement.style.setProperty('background-repeat', css.backgroundRepeat, 'important');
+      selectedElement.style.setProperty('background-size', css.backgroundSize, 'important');
+      selectedElement.style.setProperty('background-position', css.backgroundPosition, 'important');
+    }
+  }, [selectedElement]);
+
   return (
     <>
-      {/* Panel lateral */}
+      {/* Dock Flotante */}
+      <Dock 
+        onToolSelect={handleDockToolSelect}
+        activeTool={activeDockTool}
+        inspectorMode={isInspectorMode}
+        onInspectorToggle={handleInspectorToggle}
+        selectedElement={selectedElement}
+      />
+
+      {/* Panel lateral arrastrable */}
       <div 
         ref={panelRef}
-        className="fixed top-0 right-0 w-96 h-full bg-gray-800 border-l border-gray-700 text-white font-sans z-[9999] flex flex-col shadow-2xl"
+        className={`fixed w-96 h-[calc(100vh-2rem)] bg-primary-bg border border-secondary-bg text-white font-sans z-[9999] flex flex-col shadow-2xl rounded-lg overflow-hidden transition-all duration-200 z-50 ${
+          isDraggingPanel ? 'shadow-3xl scale-105' : 'hover:shadow-3xl'
+        }`}
+        style={{
+          left: `${panelPosition.x}px`,
+          top: `${panelPosition.y}px`,
+          resize: 'both',
+          minWidth: '320px',
+          minHeight: '400px',
+          maxWidth: '90vw',
+          maxHeight: '90vh'
+        }}
       >
+        {/* Drag handle visible */}
+        <div 
+          className="drag-handle absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gray-600 rounded-full cursor-grab hover:bg-gray-500 transition-colors z-10"
+          onMouseDown={handlePanelDragStart}
+        />
+        
+        {/* Indicador de posición */}
+        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
         {/* Header */}
-        <div className="p-4 border-b border-gray-700 bg-gray-900">
+        <div 
+          className="panel-header  pt-6 border-b border-secondary-bg bg-primary-bg cursor-grab"
+          onMouseDown={handlePanelDragStart}
+        >
           {selectedElement ? (
             <>
               {/* Element Header with actions */}
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-3 px-3">
                 <div className="flex items-center gap-2">
                   <span className="text-lg font-bold text-white">
                     {selectedElement.tagName.toLowerCase()}
@@ -598,22 +866,22 @@ export default function CSSProEditor() {
                 </div>
                 <div className="flex items-center gap-1">
                   <button 
-                    className="p-1 hover:bg-gray-700 rounded"
+                    className="p-2 cursor-pointer hover:bg-secondary-bg rounded"
                     title="Copy element"
                   >
-                    <Copy size={14} className="text-gray-400" />
+                    <Copy size={20} className="text-gray-400" />
                   </button>
                   <button 
-                    className="p-1 hover:bg-gray-700 rounded"
+                    className="p-2 cursor-pointer hover:bg-secondary-bg rounded"
                     title="Expand element"
                   >
-                    <Eye size={14} className="text-gray-400" />
+                    <Eye size={20} className="text-gray-400" />
                   </button>
                   <button 
-                    className="p-1 hover:bg-gray-700 rounded"
+                    className="p-2 cursor-pointer hover:bg-secondary-bg rounded"
                     title="Delete element"
                   >
-                    <Trash2 size={14} className="text-gray-400" />
+                    <Trash2 size={20} className="text-gray-400" />
                   </button>
                   <button 
                     onClick={() => {
@@ -622,10 +890,10 @@ export default function CSSProEditor() {
                       setSections([]);
                       updateOverlay(null);
                     }}
-                    className="p-1 hover:bg-gray-700 rounded"
+                    className="p-2 cursor-pointer hover:bg-secondary-bg rounded"
                     title="Close inspector"
                   >
-                    <X size={14} className="text-gray-400" />
+                    <X size={20} className="text-gray-400" />
                   </button>
                 </div>
               </div>
@@ -651,7 +919,7 @@ export default function CSSProEditor() {
               </div>
 
               {/* Tabs */}
-              <div className="flex gap-1">
+              <div className="flex gap-1 px-3">
                 {[
                   { key: 'design', label: 'Design' },
                   { key: 'code', label: 'Code' },
@@ -663,8 +931,8 @@ export default function CSSProEditor() {
                     onClick={() => setActiveTab(key as any)}
                     className={`px-3 py-1 text-xs rounded-t transition-colors relative ${
                       activeTab === key 
-                        ? 'bg-gray-700 text-white border-b-2 border-blue-500' 
-                        : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                        ? 'bg-secondary-bg text-[#dadada] border-b-2 border-blue-500' 
+                        : 'text-gray-400 hover:text-white hover:bg-secondary-bg'
                     }`}
                   >
                     {label}
@@ -716,17 +984,15 @@ export default function CSSProEditor() {
               {activeTab === 'design' ? (
                 <div className="space-y-4">
                   {/* Media Queries Selector */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-gray-400">
-                      <div className="w-4 h-4 border border-gray-500 rounded-sm flex items-center justify-center">
-                        <div className="w-2 h-2 bg-gray-500"></div>
-                      </div>
+                  <div className="space-y-3  bg-[#ff80bf0f] rounded-lg">
+                    <div className="flex items-center gap-2 text-gray-400 px-3 pt-3">
+                        <svg  xmlns="http://www.w3.org/2000/svg"  width="20"  height="20"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  className="icon icon-tabler icons-tabler-outline icon-tabler-devices-pc"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 5h6v14h-6z" /><path d="M12 9h10v7h-10z" /><path d="M14 19h6" /><path d="M17 16v3" /><path d="M6 13v.01" /><path d="M6 16v.01" /></svg>
                       <span className="text-xs">Media:</span>
                     </div>
                     <select 
                       value={selectedMedia}
                       onChange={(e) => setSelectedMedia(e.target.value)}
-                      className="w-full bg-gray-700 text-pink-400 px-3 py-2 rounded text-sm border border-gray-600 focus:border-blue-500 focus:outline-none"
+                      className="w-full  text-pink-400 px-3 py-2 rounded text-sm border-none focus:border-none focus:outline-none"
                     >
                       <option value="Auto - screen and (min-width: 1024px)">Auto - screen and (min-width: 1024px)</option>
                       <option value="Mobile - screen and (max-width: 768px)">Mobile - screen and (max-width: 768px)</option>
@@ -736,8 +1002,8 @@ export default function CSSProEditor() {
                   </div>
 
                   {/* State/Pseudo Selector */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-gray-400">
+                  <div className="space-y-3 bg-[#77f0a00d] rounded-lg">
+                    <div className="flex items-center gap-2 text-gray-400 px-3 pt-3">
                       <div className="w-4 h-4 rounded-full border border-gray-500 flex items-center justify-center">
                         <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
                       </div>
@@ -746,7 +1012,7 @@ export default function CSSProEditor() {
                     <select 
                       value={selectedState}
                       onChange={(e) => setSelectedState(e.target.value)}
-                      className="w-full bg-gray-700 text-green-400 px-3 py-2 rounded text-sm border border-gray-600 focus:border-blue-500 focus:outline-none"
+                      className="w-full bg-transparent text-green-400 px-3 py-2 rounded text-sm border-none focus:border-blue-500 focus:outline-none"
                     >
                       <option value="None">None</option>
                       <option value="hover">:hover</option>
@@ -761,10 +1027,10 @@ export default function CSSProEditor() {
                   </div>
 
                   {/* Position and Transform Controls */}
-                  <div className="space-y-3 bg-gray-750 p-3 rounded border border-gray-600">
+                  <div className="space-y-3 bg-secondary-bg p-3 rounded-lg ">
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       {/* Position X */}
-                      <div className="space-y-1">
+                      <div className="space-y-1 flex items-center">
                         <div className="flex items-center gap-1">
                           <span className="text-gray-400">X</span>
                           <span className="text-gray-500">{selectedElement ? Math.round(selectedElement.getBoundingClientRect().left) : 0}</span>
@@ -772,7 +1038,7 @@ export default function CSSProEditor() {
                       </div>
                       
                       {/* Position Y */}
-                      <div className="space-y-1">
+                      <div className="space-y-1 flex items-center">
                         <div className="flex items-center gap-1">
                           <span className="text-gray-400">Y</span>
                           <span className="text-gray-500">{selectedElement ? Math.round(selectedElement.getBoundingClientRect().top) : 0}</span>
@@ -780,15 +1046,49 @@ export default function CSSProEditor() {
                       </div>
 
                       {/* Rotation */}
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1">
-                          <span className="text-gray-400">↻</span>
-                          <span className="text-gray-500">
-                            {selectedElement ? 
-                              (window.getComputedStyle(selectedElement).transform !== 'none' ? 
-                                window.getComputedStyle(selectedElement).transform : '0°') 
-                              : '0°'}
-                          </span>
+                      <div className="space-y-1 flex items-center">
+                        <label className="text-gray-400 mr-2">
+                          <svg  xmlns="http://www.w3.org/2000/svg"  width="15"  height="15"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  className="icon icon-tabler icons-tabler-outline icon-tabler-rotate"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.95 11a8 8 0 1 0 -.5 4m.5 5v-5h-5" /></svg>
+                        </label>
+                        <div className="relative flex border-2 border-secondary-bg rounded-lg">
+                          <input
+                            type="text"
+                            value={editableValues.rotate.value}
+                            onChange={(e) => {
+                              const newValue = e.target.value;
+                              setEditableValues(prev => ({ 
+                                ...prev, 
+                                rotate: { ...prev.rotate, value: newValue }
+                              }));
+                              if (selectedElement) {
+                                selectedElement.style.setProperty('transform', `rotate(${newValue}${editableValues.rotate.unit})`, 'important');
+                              }
+                            }}
+                            className="flex-1 w-full bg-transparent text-white text-xs px-2 py-1 outline-none"
+                            placeholder="0"
+                          />
+                          <Select 
+                            value={editableValues.rotate.unit} 
+                            onValueChange={(value) => {
+                              setEditableValues(prev => ({ 
+                                ...prev, 
+                                rotate: { ...prev.rotate, unit: value }
+                              }));
+                              if (selectedElement) {
+                                selectedElement.style.setProperty('transform', `rotate(${editableValues.rotate.value}${value})`, 'important');
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none  focus:border-none focus:outline-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-primary-bg border-secondary-bg">
+                              <SelectItem value="deg">deg</SelectItem>
+                              <SelectItem value="rad">rad</SelectItem>
+                              <SelectItem value="grad">grad</SelectItem>
+                              <SelectItem value="turn">turn</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </div>
@@ -798,207 +1098,397 @@ export default function CSSProEditor() {
                       {/* Width */}
                       <div className="space-y-1">
                         <label className="text-gray-400">W</label>
-                        <div className="relative">
+                        <div className="relative flex border-2 border-secondary-bg rounded-lg">
                           <input
                             type="text"
-                            value={editableValues.width}
+                            value={editableValues.width.value}
                             onChange={(e) => {
                               const newValue = e.target.value;
-                              setEditableValues(prev => ({ ...prev, width: newValue }));
+                              setEditableValues(prev => ({ 
+                                ...prev, 
+                                width: { ...prev.width, value: newValue }
+                              }));
                               if (selectedElement) {
-                                selectedElement.style.width = newValue;
+                                const fullValue = newValue === 'auto' ? 'auto' : `${newValue}${editableValues.width.unit}`;
+                                selectedElement.style.width = fullValue;
                               }
                             }}
-                            className="w-full bg-gray-700 text-white px-2 py-1 rounded text-xs border border-gray-600 focus:border-green-500 focus:outline-none"
+                            className="flex-1  text-white px-2 py-1  text-xs bg-none border border-none  border-r-0 focus:border-green-500 focus:outline-none w-full"
                             placeholder="auto"
                           />
+                          <Select 
+                            value={editableValues.width.unit}
+                            
+                            onValueChange={(newUnit) => {
+                              setEditableValues(prev => ({ 
+                                ...prev, 
+                                width: { ...prev.width, unit: newUnit }
+                              }));
+                              if (selectedElement && editableValues.width.value !== 'auto') {
+                                selectedElement.style.width = `${editableValues.width.value}${newUnit}`;
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none  focus:border-green-500 focus:outline-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-primary-bg border-secondary-bg ">
+                              <SelectItem value="px" className="text-white hover:bg-gray-700">px</SelectItem>
+                              <SelectItem value="%" className="text-white hover:bg-gray-700">%</SelectItem>
+                              <SelectItem value="em" className="text-white hover:bg-gray-700">em</SelectItem>
+                              <SelectItem value="rem" className="text-white hover:bg-gray-700">rem</SelectItem>
+                              <SelectItem value="vw" className="text-white hover:bg-gray-700">vw</SelectItem>
+                              <SelectItem value="vh" className="text-white hover:bg-gray-700">vh</SelectItem>
+                              <SelectItem value="auto" className="text-white hover:bg-gray-700">auto</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
 
                       {/* Height */}
                       <div className="space-y-1">
                         <label className="text-gray-400">H</label>
-                        <div className="relative">
+                        <div className="relative flex border-2 border-secondary-bg rounded-lg">
                           <input
                             type="text"
-                            value={editableValues.height}
+                            value={editableValues.height.value}
                             onChange={(e) => {
                               const newValue = e.target.value;
-                              setEditableValues(prev => ({ ...prev, height: newValue }));
+                              setEditableValues(prev => ({ 
+                                ...prev, 
+                                height: { ...prev.height, value: newValue }
+                              }));
                               if (selectedElement) {
-                                selectedElement.style.height = newValue;
+                                const fullValue = newValue === 'auto' ? 'auto' : `${newValue}${editableValues.height.unit}`;
+                                selectedElement.style.height = fullValue;
                               }
                             }}
-                            className="w-full bg-gray-700 text-white px-2 py-1 rounded text-xs border border-gray-600 focus:border-green-500 focus:outline-none"
+                            className="flex-1 text-white px-2 py-1 text-xs bg-none border border-none border-r-0 focus:border-green-500 focus:outline-none w-full"
                             placeholder="auto"
                           />
+                          <Select 
+                            value={editableValues.height.unit}
+                            onValueChange={(newUnit) => {
+                              setEditableValues(prev => ({ 
+                                ...prev, 
+                                height: { ...prev.height, unit: newUnit }
+                              }));
+                              if (selectedElement && editableValues.height.value !== 'auto') {
+                                selectedElement.style.height = `${editableValues.height.value}${newUnit}`;
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-primary-bg border-secondary-bg">
+                              <SelectItem value="px" className="text-white hover:bg-gray-700">px</SelectItem>
+                              <SelectItem value="%" className="text-white hover:bg-gray-700">%</SelectItem>
+                              <SelectItem value="em" className="text-white hover:bg-gray-700">em</SelectItem>
+                              <SelectItem value="rem" className="text-white hover:bg-gray-700">rem</SelectItem>
+                              <SelectItem value="vw" className="text-white hover:bg-gray-700">vw</SelectItem>
+                              <SelectItem value="vh" className="text-white hover:bg-gray-700">vh</SelectItem>
+                              <SelectItem value="auto" className="text-white hover:bg-gray-700">auto</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
 
                       {/* Border Radius */}
                       <div className="space-y-1">
-                        <label className="text-gray-400">⟲</label>
-                        <div className="relative">
+                        <label className="text-gray-400">R</label>
+                        <div className="relative flex border-2 border-secondary-bg rounded-lg">
                           <input
                             type="text"
-                            value={editableValues.borderRadius}
+                            value={editableValues.borderRadius.value}
                             onChange={(e) => {
                               const newValue = e.target.value;
-                              setEditableValues(prev => ({ ...prev, borderRadius: newValue }));
+                              setEditableValues(prev => ({ 
+                                ...prev, 
+                                borderRadius: { ...prev.borderRadius, value: newValue }
+                              }));
                               if (selectedElement) {
-                                selectedElement.style.borderRadius = newValue;
+                                selectedElement.style.borderRadius = `${newValue}${editableValues.borderRadius.unit}`;
                               }
                             }}
-                            className="w-full bg-gray-700 text-white px-2 py-1 rounded text-xs border border-gray-600 focus:border-green-500 focus:outline-none"
-                            placeholder="0px"
+                            className="flex-1 text-white px-2 py-1 text-xs bg-none border border-none border-r-0 focus:border-green-500 focus:outline-none w-full"
+                            placeholder="0"
                           />
+                          <Select 
+                            value={editableValues.borderRadius.unit}
+                            onValueChange={(newUnit) => {
+                              setEditableValues(prev => ({ 
+                                ...prev, 
+                                borderRadius: { ...prev.borderRadius, unit: newUnit }
+                              }));
+                              if (selectedElement) {
+                                selectedElement.style.borderRadius = `${editableValues.borderRadius.value}${newUnit}`;
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-primary-bg border-secondary-bg">
+                              <SelectItem value="px" className="text-white hover:bg-gray-700">px</SelectItem>
+                              <SelectItem value="%" className="text-white hover:bg-gray-700">%</SelectItem>
+                              <SelectItem value="em" className="text-white hover:bg-gray-700">em</SelectItem>
+                              <SelectItem value="rem" className="text-white hover:bg-gray-700">rem</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* CSS Pro Style Spacing Visualizer */}
-                  <div className={`${styles.cssProVisualSpacingBox} ${styles.cssProVisualAccordionContent} css-pro-visual-spacing-box`}>
+                  <div className={`${styles.cssProVisualSpacingBox} ${styles.cssProVisualAccordionContent} border border-secondary-bg css-pro-visual-spacing-box`}>
                     {/* Margin container */}
                     <div className="css-pro-visual-spacing-placeholder horizontal top"></div>
                     <div className="css-pro-visual-spacing-placeholder horizontal bottom"></div>
                     <div className='css-pro-visual-spacing-placeholder vertical left'></div>
                     <div className='css-pro-visual-spacing-placeholder vertical right'></div>
-                    <div className="bg-gray-900 p-6 rounded ">
+                    <div className="bg-secondary-bg p-6 rounded-lg ">
                       
                       {/* Margin Top */}
-                      <label data-css-pro-edit-rule="margin-top" onMouseDown={(e) => handleSpacingMouseDown('marginTop', e)} data-css-pro-input className="absolute top-2 left-1/2 transform -translate-x-1/2 flex items-center">
+                      <label 
+                        data-css-pro-edit-rule="margin-top" 
+                        onMouseDown={(e) => handleSpacingMouseDown('marginTop', e)} 
+                        data-css-pro-input 
+                        className="absolute top-2 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg"
+                      >
                         <span 
                           className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
-                          
                           title="Click and drag to change margin-top"
                         >
                           ⇕
                         </span>
-                        <input
-                          type="number"
-                          value={spacingValues.marginTop?.value || 0}
-                          onChange={(e) => handleSpacingValueChange('marginTop', parseFloat(e.target.value) || 0)}
-                          className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
-                          style={{ width: `${Math.max(2, String(spacingValues.marginTop?.value || 0).length)}ch` }}
-                        />
-                        <select
-                          value={spacingValues.marginTop?.unit || 'px'}
-                          onChange={(e) => handleSpacingUnitChange('marginTop', e.target.value)}
-                          className="bg-gray-700 text-white text-xs border-none outline-none ml-1"
-                        >
-                          <option value="auto">auto</option>
-                          <option value="px">px</option>
-                          <option value="%">%</option>
-                          <option value="em">em</option>
-                          <option value="rem">rem</option>
-                          <option value="vw">vw</option>
-                          <option value="vh">vh</option>
-                        </select>
+                        <div className="flex items-center gap-1 h-full">
+                          {/* Input con botones +/- personalizado */}
+                          <div className="flex items-center  rounded  h-full w-full">
+                            <button
+                              type="button"
+                              onClick={() => handleSpacingValueChange('marginTop', Math.max(-999, (spacingValues.marginTop?.value || 0) - 1))}
+                              className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white transition-colors cursor-pointer hover:bg-secondary-bg"
+                            >
+                              <MinusIcon size={12} />
+                            </button>
+                            <input
+                              type="text"
+                              value={spacingValues.marginTop?.value || 0}
+                              onChange={(e) => handleSpacingValueChange('marginTop', parseFloat(e.target.value) || 0)}
+                              className="bg-transparent text-white text-xs w-full text-center border-none outline-none w-full"
+                              
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleSpacingValueChange('marginTop', Math.min(999, (spacingValues.marginTop?.value || 0) + 1))}
+                              className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white transition-colors cursor-pointer hover:bg-secondary-bg"
+                            >
+                              <PlusIcon size={12} />
+                            </button>
+                          </div>
+                          <Select 
+                            value={spacingValues.marginTop?.unit || 'px'} 
+                            onValueChange={(value) => handleSpacingUnitChange('marginTop', value)}
+                          >
+                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-primary-bg border-secondary-bg">
+                              <SelectItem value="auto">auto</SelectItem>
+                              <SelectItem value="px">px</SelectItem>
+                              <SelectItem value="%">%</SelectItem>
+                              <SelectItem value="em">em</SelectItem>
+                              <SelectItem value="rem">rem</SelectItem>
+                              <SelectItem value="vw">vw</SelectItem>
+                              <SelectItem value="vh">vh</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </label>
 
                       {/* Margin Bottom */}
-                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center">
+                      <label 
+                        data-css-pro-edit-rule="margin-bottom" 
+                        onMouseDown={(e) => handleSpacingMouseDown('marginBottom', e)} 
+                        data-css-pro-input 
+                        className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg"
+                      >
                         <span 
                           className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
-                          onMouseDown={(e) => handleSpacingMouseDown('marginBottom', e)}
                           title="Click and drag to change margin-bottom"
                         >
                           ⇕
                         </span>
-                        <input
-                          type="number"
-                          value={spacingValues.marginBottom?.value || 0}
-                          onChange={(e) => handleSpacingValueChange('marginBottom', parseFloat(e.target.value) || 0)}
-                          className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
-                          style={{ width: `${Math.max(2, String(spacingValues.marginBottom?.value || 0).length)}ch` }}
-                        />
-                        <select
-                          value={spacingValues.marginBottom?.unit || 'px'}
-                          onChange={(e) => handleSpacingUnitChange('marginBottom', e.target.value)}
-                          className="bg-gray-700 text-white text-xs border-none outline-none ml-1"
-                        >
-                          <option value="auto">auto</option>
-                          <option value="px">px</option>
-                          <option value="%">%</option>
-                          <option value="em">em</option>
-                          <option value="rem">rem</option>
-                          <option value="vw">vw</option>
-                          <option value="vh">vh</option>
-                        </select>
-                      </div>
+                        <div className="flex items-center gap-1  h-full">
+                          {/* Input con botones +/- personalizado */}
+                          <div className="flex items-center  rounded  h-full w-full">
+                            <button
+                              type="button"
+                              onClick={() => handleSpacingValueChange('marginBottom', Math.max(-999, (spacingValues.marginBottom?.value || 0) - 1))}
+                              className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                            >
+                              <MinusIcon size={12} />
+                            </button>
+                            <input
+                              type="text"
+                              value={spacingValues.marginBottom?.value || 0}
+                              onChange={(e) => handleSpacingValueChange('marginBottom', parseFloat(e.target.value) || 0)}
+                              className="bg-transparent text-white text-xs w-full text-center border-none outline-none"
+                             
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleSpacingValueChange('marginBottom', Math.min(999, (spacingValues.marginBottom?.value || 0) + 1))}
+                              className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                            >
+                              <PlusIcon size={12} />
+                            </button>
+                          </div>
+                          <Select 
+                            value={spacingValues.marginBottom?.unit || 'px'} 
+                            onValueChange={(value) => handleSpacingUnitChange('marginBottom', value)}
+                          >
+                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-primary-bg border-secondary-bg">
+                              <SelectItem value="auto">auto</SelectItem>
+                              <SelectItem value="px">px</SelectItem>
+                              <SelectItem value="%">%</SelectItem>
+                              <SelectItem value="em">em</SelectItem>
+                              <SelectItem value="rem">rem</SelectItem>
+                              <SelectItem value="vh">vh</SelectItem>
+                              <SelectItem value="vw">vw</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </label>
 
                       {/* Margin Left */}
-                      <div className="absolute left-1 top-1/2 transform -translate-y-1/2 -rotate-90 origin-center">
-                        <div className="flex items-center">
+                      <label 
+                        data-css-pro-edit-rule="margin-left" 
+                        onMouseDown={(e) => handleSpacingMouseDown('marginLeft', e)} 
+                        data-css-pro-input 
+                        className="absolute left-[-48px] top-[42%] transform -translate-y-[-6%] -rotate-90 origin-center border border-secondary-bg h-[44px] w-[45.035%]"
+                      >
+                        <div className="flex items-center h-full">
                           <span 
-                            className="cursor-ew-resize text-gray-400 hover:text-white mr-1 text-xs"
-                            onMouseDown={(e) => handleSpacingMouseDown('marginLeft', e)}
+                            className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
                             title="Click and drag to change margin-left"
                           >
                             ⇔
                           </span>
-                          <input
-                            type="number"
-                            value={spacingValues.marginLeft?.value || 0}
-                            onChange={(e) => handleSpacingValueChange('marginLeft', parseFloat(e.target.value) || 0)}
-                            className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
-                            style={{ width: `${Math.max(2, String(spacingValues.marginLeft?.value || 0).length)}ch` }}
-                          />
-                          <select
-                            value={spacingValues.marginLeft?.unit || 'px'}
-                            onChange={(e) => handleSpacingUnitChange('marginLeft', e.target.value)}
-                            className="bg-gray-700 text-white text-xs border-none outline-none ml-1"
-                          >
-                            <option value="auto">auto</option>
-                            <option value="px">px</option>
-                            <option value="%">%</option>
-                            <option value="em">em</option>
-                            <option value="rem">rem</option>
-                            <option value="vw">vw</option>
-                            <option value="vh">vh</option>
-                          </select>
+                          <div className="flex items-center gap-1 h-full">
+                            {/* Input con botones +/- personalizado */}
+                            <div className="flex items-center rounded h-full w-full">
+                              <button
+                                type="button"
+                                onClick={() => handleSpacingValueChange('marginLeft', Math.max(-999, (spacingValues.marginLeft?.value || 0) - 1))}
+                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                              >
+                                <MinusIcon size={12} />
+                              </button>
+                              <input
+                                type="text"
+                                value={spacingValues.marginLeft?.value || 0}
+                                onChange={(e) => handleSpacingValueChange('marginLeft', parseFloat(e.target.value) || 0)}
+                                className="bg-transparent text-white text-xs w-full text-center border-none outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleSpacingValueChange('marginLeft', Math.min(999, (spacingValues.marginLeft?.value || 0) + 1))}
+                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                              >
+                                <PlusIcon size={12} />
+                              </button>
+                            </div>
+                            <Select 
+                              value={spacingValues.marginLeft?.unit || 'px'} 
+                              onValueChange={(value) => handleSpacingUnitChange('marginLeft', value)}
+                            >
+                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-primary-bg border-secondary-bg">
+                                <SelectItem value="auto">auto</SelectItem>
+                                <SelectItem value="px">px</SelectItem>
+                                <SelectItem value="%">%</SelectItem>
+                                <SelectItem value="em">em</SelectItem>
+                                <SelectItem value="rem">rem</SelectItem>
+                                <SelectItem value="vw">vw</SelectItem>
+                                <SelectItem value="vh">vh</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
-                      </div>
+                      </label>
 
                       {/* Margin Right */}
-                      <div className="absolute right-1 top-1/2 transform -translate-y-1/2 rotate-90 origin-center">
+                      <label 
+                        data-css-pro-edit-rule="margin-right" 
+                        onMouseDown={(e) => handleSpacingMouseDown('marginRight', e)} 
+                        data-css-pro-input 
+                        className="absolute right-1 top-1/2 transform -translate-[101px] rotate-90 origin-center border border-secondary-bg h-[44px] w-[45.035%] top-[213px] right-[-148px]"
+                      >
                         <div className="flex items-center">
                           <span 
-                            className="cursor-ew-resize text-gray-400 hover:text-white mr-1 text-xs"
-                            onMouseDown={(e) => handleSpacingMouseDown('marginRight', e)}
+                            className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
                             title="Click and drag to change margin-right"
                           >
                             ⇔
                           </span>
-                          <input
-                            type="number"
-                            value={spacingValues.marginRight?.value || 0}
-                            onChange={(e) => handleSpacingValueChange('marginRight', parseFloat(e.target.value) || 0)}
-                            className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
-                            style={{ width: `${Math.max(2, String(spacingValues.marginRight?.value || 0).length)}ch` }}
-                          />
-                          <select
-                            value={spacingValues.marginRight?.unit || 'px'}
-                            onChange={(e) => handleSpacingUnitChange('marginRight', e.target.value)}
-                            className="bg-gray-700 text-white text-xs border-none outline-none ml-1"
-                          >
-                            <option value="auto">auto</option>
-                            <option value="px">px</option>
-                            <option value="%">%</option>
-                            <option value="em">em</option>
-                            <option value="rem">rem</option>
-                            <option value="vw">vw</option>
-                            <option value="vh">vh</option>
-                          </select>
+                          <div className="flex items-center gap-1 h-full">
+                            {/* Input con botones +/- personalizado */}
+                            <div className="flex items-center rounded h-full w-full">
+                              <button
+                                type="button"
+                                onClick={() => handleSpacingValueChange('marginRight', Math.max(-999, (spacingValues.marginRight?.value || 0) - 1))}
+                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                              >
+                                <MinusIcon size={12} />
+                              </button>
+                              <input
+                                type="text"
+                                value={spacingValues.marginRight?.value || 0}
+                                onChange={(e) => handleSpacingValueChange('marginRight', parseFloat(e.target.value) || 0)}
+                                className="bg-transparent text-white text-xs w-full text-center border-none outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleSpacingValueChange('marginRight', Math.min(999, (spacingValues.marginRight?.value || 0) + 1))}
+                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                              >
+                                <PlusIcon size={12} />
+                              </button>
+                            </div>
+                            <Select 
+                              value={spacingValues.marginRight?.unit || 'px'} 
+                              onValueChange={(value) => handleSpacingUnitChange('marginRight', value)}
+                            >
+                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-primary-bg border-secondary-bg">
+                                <SelectItem value="auto">auto</SelectItem>
+                                <SelectItem value="px">px</SelectItem>
+                                <SelectItem value="%">%</SelectItem>
+                                <SelectItem value="em">em</SelectItem>
+                                <SelectItem value="rem">rem</SelectItem>
+                                <SelectItem value="vw">vw</SelectItem>
+                                <SelectItem value="vh">vh</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
-                      </div>
+                      </label>
 
                       {/* Padding container */}
-                      <div className="bg-gray-700 p-6 m-8 rounded relative border border-gray-600">
+                      <div className="bg-secondary-bg p-10 m-8 rounded relative">
                         
                         {/* Padding Top */}
-                        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 flex items-center">
+                        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg rounded-lg">
                           <span 
                             className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
                             onMouseDown={(e) => handleSpacingMouseDown('paddingTop', e)}
@@ -1007,29 +1497,33 @@ export default function CSSProEditor() {
                             ⇕
                           </span>
                           <input
-                            type="number"
+                            type="text"
                             min="0"
                             value={spacingValues.paddingTop?.value || 0}
                             onChange={(e) => handleSpacingValueChange('paddingTop', parseFloat(e.target.value) || 0)}
                             className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
                             style={{ width: `${Math.max(2, String(spacingValues.paddingTop?.value || 0).length)}ch` }}
                           />
-                          <select
-                            value={spacingValues.paddingTop?.unit || 'px'}
-                            onChange={(e) => handleSpacingUnitChange('paddingTop', e.target.value)}
-                            className="bg-gray-600 text-white text-xs border-none outline-none ml-1"
+                          <Select 
+                            value={spacingValues.paddingTop?.unit || 'px'} 
+                            onValueChange={(value) => handleSpacingUnitChange('paddingTop', value)}
                           >
-                            <option value="px">px</option>
-                            <option value="%">%</option>
-                            <option value="em">em</option>
-                            <option value="rem">rem</option>
-                            <option value="vw">vw</option>
-                            <option value="vh">vh</option>
-                          </select>
+                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-primary-bg border-secondary-bg">
+                              <SelectItem value="px">px</SelectItem>
+                              <SelectItem value="%">%</SelectItem>
+                              <SelectItem value="em">em</SelectItem>
+                              <SelectItem value="rem">rem</SelectItem>
+                              <SelectItem value="vw">vw</SelectItem>
+                              <SelectItem value="vh">vh</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         {/* Padding Bottom */}
-                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center">
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg rounded-lg">
                           <span 
                             className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
                             onMouseDown={(e) => handleSpacingMouseDown('paddingBottom', e)}
@@ -1038,100 +1532,112 @@ export default function CSSProEditor() {
                             ⇕
                           </span>
                           <input
-                            type="number"
+                            type="text"
                             min="0"
                             value={spacingValues.paddingBottom?.value || 0}
                             onChange={(e) => handleSpacingValueChange('paddingBottom', parseFloat(e.target.value) || 0)}
                             className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
                             style={{ width: `${Math.max(2, String(spacingValues.paddingBottom?.value || 0).length)}ch` }}
                           />
-                          <select
-                            value={spacingValues.paddingBottom?.unit || 'px'}
-                            onChange={(e) => handleSpacingUnitChange('paddingBottom', e.target.value)}
-                            className="bg-gray-600 text-white text-xs border-none outline-none ml-1"
+                          <Select 
+                            value={spacingValues.paddingBottom?.unit || 'px'} 
+                            onValueChange={(value) => handleSpacingUnitChange('paddingBottom', value)}
                           >
-                            <option value="px">px</option>
-                            <option value="%">%</option>
-                            <option value="em">em</option>
-                            <option value="rem">rem</option>
-                            <option value="vw">vw</option>
-                            <option value="vh">vh</option>
-                          </select>
+                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-primary-bg border-secondary-bg">
+                              <SelectItem value="px">px</SelectItem>
+                              <SelectItem value="%">%</SelectItem>
+                              <SelectItem value="em">em</SelectItem>
+                              <SelectItem value="rem">rem</SelectItem>
+                              <SelectItem value="vw">vw</SelectItem>
+                              <SelectItem value="vh">vh</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         {/* Padding Left */}
-                        <div className="absolute left-1 top-1/2 transform -translate-y-1/2 -rotate-90 origin-center">
+                        <div className="absolute left-[-19px] top-1/2 transform -translate-y-1/2 -rotate-90 origin-center border border-secondary-bg rounded-lg">
                           <div className="flex items-center">
                             <span 
-                              className="cursor-ew-resize text-gray-400 hover:text-white mr-1 text-xs"
+                              className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
                               onMouseDown={(e) => handleSpacingMouseDown('paddingLeft', e)}
                               title="Click and drag to change padding-left"
                             >
                               ⇔
                             </span>
                             <input
-                              type="number"
+                              type="text"
                               min="0"
                               value={spacingValues.paddingLeft?.value || 0}
                               onChange={(e) => handleSpacingValueChange('paddingLeft', parseFloat(e.target.value) || 0)}
                               className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
                               style={{ width: `${Math.max(2, String(spacingValues.paddingLeft?.value || 0).length)}ch` }}
                             />
-                            <select
-                              value={spacingValues.paddingLeft?.unit || 'px'}
-                              onChange={(e) => handleSpacingUnitChange('paddingLeft', e.target.value)}
-                              className="bg-gray-600 text-white text-xs border-none outline-none ml-1"
+                            <Select 
+                              value={spacingValues.paddingLeft?.unit || 'px'} 
+                              onValueChange={(value) => handleSpacingUnitChange('paddingLeft', value)}
                             >
-                              <option value="px">px</option>
-                              <option value="%">%</option>
-                              <option value="em">em</option>
-                              <option value="rem">rem</option>
-                              <option value="vw">vw</option>
-                              <option value="vh">vh</option>
-                            </select>
+                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-primary-bg border-secondary-bg">
+                                <SelectItem value="px">px</SelectItem>
+                                <SelectItem value="%">%</SelectItem>
+                                <SelectItem value="em">em</SelectItem>
+                                <SelectItem value="rem">rem</SelectItem>
+                                <SelectItem value="vw">vw</SelectItem>
+                                <SelectItem value="vh">vh</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
 
                         {/* Padding Right */}
-                        <div className="absolute right-1 top-1/2 transform -translate-y-1/2 rotate-90 origin-center">
+                        <div className="absolute right-[-19px] top-1/2 transform -translate-y-1/2 rotate-90 origin-center border border-secondary-bg rounded-lg">
                           <div className="flex items-center">
                             <span 
-                              className="cursor-ew-resize text-gray-400 hover:text-white mr-1 text-xs"
+                              className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
                               onMouseDown={(e) => handleSpacingMouseDown('paddingRight', e)}
                               title="Click and drag to change padding-right"
                             >
                               ⇔
                             </span>
                             <input
-                              type="number"
+                              type="text"
                               min="0"
                               value={spacingValues.paddingRight?.value || 0}
                               onChange={(e) => handleSpacingValueChange('paddingRight', parseFloat(e.target.value) || 0)}
                               className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
                               style={{ width: `${Math.max(2, String(spacingValues.paddingRight?.value || 0).length)}ch` }}
                             />
-                            <select
-                              value={spacingValues.paddingRight?.unit || 'px'}
-                              onChange={(e) => handleSpacingUnitChange('paddingRight', e.target.value)}
-                              className="bg-gray-600 text-white text-xs border-none outline-none ml-1"
+                            <Select 
+                              value={spacingValues.paddingRight?.unit || 'px'} 
+                              onValueChange={(value) => handleSpacingUnitChange('paddingRight', value)}
                             >
-                              <option value="px">px</option>
-                              <option value="%">%</option>
-                              <option value="em">em</option>
-                              <option value="rem">rem</option>
-                              <option value="vw">vw</option>
-                              <option value="vh">vh</option>
-                            </select>
+                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-primary-bg border-secondary-bg">
+                                <SelectItem value="px">px</SelectItem>
+                                <SelectItem value="%">%</SelectItem>
+                                <SelectItem value="em">em</SelectItem>
+                                <SelectItem value="rem">rem</SelectItem>
+                                <SelectItem value="vw">vw</SelectItem>
+                                <SelectItem value="vh">vh</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
 
                         {/* Element center */}
-                        <div className="bg-gray-600 p-8 rounded text-center border border-gray-500 min-h-[80px] flex flex-col justify-center">
+                        <div className="bg-primary-bg p-8 rounded text-center border border-secondary-bg min-h-[80px] flex flex-col justify-center">
                           <div className="text-xs text-gray-300 mb-1 font-medium">
                             {selectedElement?.tagName.toLowerCase() || 'element'}
                           </div>
                           <div className="text-xs text-gray-400">
-                            {editableValues.width} × {editableValues.height}
+                            {editableValues.width.value}{editableValues.width.unit} × {editableValues.height.value}{editableValues.height.unit}
                           </div>
                         </div>
 
@@ -1144,9 +1650,9 @@ export default function CSSProEditor() {
                     </div>
                   </div>
                   <Accordion type="single" collapsible>
-                    <AccordionItem value="item-1">
-                      <AccordionTrigger>Typography</AccordionTrigger>
-                      <AccordionContent>
+                    <AccordionItem className='border-b-2 border-secondary-bg' value="item-1">
+                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Typography</AccordionTrigger>
+                      <AccordionContent >
                         <Typography 
                           values={typographyValues}
                           onChange={handleTypographyChange}
@@ -1155,37 +1661,70 @@ export default function CSSProEditor() {
                         />
                       </AccordionContent>
                     </AccordionItem>
+                    <AccordionItem className='border-b-2 border-secondary-bg ' value="item-2">
+                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Background</AccordionTrigger>
+                      <AccordionContent>
+                        <Background 
+                          value={backgroundValues}
+                          onChange={handleBackgroundChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem className='border-b-2 border-secondary-bg ' value="item-3">
+                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Filters</AccordionTrigger>
+                      <AccordionContent>
+                        <Filters 
+                          values={filtersValues}
+                          onChange={handleFiltersChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem  className='border-b-2 border-secondary-bg ' value="item-4">
+                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Text shadow</AccordionTrigger>
+                      <AccordionContent>
+                        <Shadows 
+                          values={shadowsValues}
+                          onChange={handleShadowsChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem className='border-b-2 border-secondary-bg' value="item-5">
+                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Box shadow</AccordionTrigger>
+                      <AccordionContent>
+                        <BoxShadows 
+                          value={boxShadow}
+                          onChange={handleBoxShadowChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem className='border-b-2 border-secondary-bg ' value="item-6">
+                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Positioning</AccordionTrigger>
+                      <AccordionContent>
+                        <Positioning 
+                          values={positioning}
+                          onChange={handlePositioningChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem className='border-b-2 border-secondary-bg ' value="item-7">
+                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Border</AccordionTrigger>
+                      <AccordionContent>
+                        <Border 
+                          values={borderValues}
+                          onChange={handleBorderChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem className='border-b-2 border-secondary-bg ' value="item-8">
+                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Display</AccordionTrigger>
+                      <AccordionContent>
+                        <Display 
+                          values={displayValues}
+                          onChange={handleDisplayChange}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
                   </Accordion>
-
-                  {sections.map((section, sectionIndex) => (
-                    <div key={section.title} className="border-b border-gray-700 last:border-b-0">
-                      <button
-                        onClick={() => toggleSection(sectionIndex)}
-                        className="w-full flex items-center justify-between py-3 text-left hover:bg-gray-700 rounded px-2 transition-colors"
-                      >
-                        <span className="font-medium text-sm">{section.title}</span>
-                        {section.expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                      </button>
-                      
-                      {section.expanded && (
-                        <div className="pb-4 space-y-2">
-                          {section.properties.map((property, propIndex) => (
-                            <div key={property.name} className="flex items-center justify-between py-1">
-                              <span className="text-xs text-gray-300 capitalize">
-                                {property.name.replace(/-/g, ' ')}
-                              </span>
-                              <input
-                                type="text"
-                                value={property.value}
-                                onChange={(e) => handlePropertyChange(sectionIndex, propIndex, e.target.value)}
-                                className="bg-gray-700 text-white px-2 py-1 rounded text-xs w-24 border border-gray-600 focus:border-blue-500 focus:outline-none"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
                 </div>
               ) : activeTab === 'code' ? (
                 <div className="space-y-4">
@@ -1256,6 +1795,7 @@ export default function CSSProEditor() {
           💡 Hold <kbd className="bg-green-700 px-1 rounded">Ctrl</kbd> + Click to select another element
         </div>
       )}
+      
     </>
   );
 };
