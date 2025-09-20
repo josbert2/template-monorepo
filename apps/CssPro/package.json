@@ -23,6 +23,7 @@
     "next": "^15.0.0",
     "next-themes": "^0.4.6",
     "postcss": "^8.4.47",
+    "radix-ui": "^1.4.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-fontpicker-ts": "^1.2.0",
