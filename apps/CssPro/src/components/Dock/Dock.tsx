@@ -208,8 +208,7 @@ export default function Dock({
     const importantStyles = [
       'display', 'position', 'width', 'height', 'margin', 'padding',
       'backgroundColor', 'color', 'fontSize', 'fontFamily', 'fontWeight',
-      'border', 'borderRadius', 'boxShadow', 'transform', 'opacity',
-      'flexDirection', 'alignItems', 'justifyContent', 'textAlign'
+      'border', 'borderRadius', 'boxShadow', 'transform', 'opacity'
     ];
     
     // Función para cerrar modal
@@ -430,17 +429,21 @@ export default function Dock({
     document.body.appendChild(panel);
   };
 
-  // Actualizar posición cuando cambie el tamaño de la ventana
-  useEffect(() => {
-    const handleResize = () => {
-      setDockPosition(prev => ({
-        x: Math.min(prev.x, window.innerWidth - 400),
-        y: window.innerHeight - 120 // Mantener siempre abajo
-      }));
-    };
+  // Estado para el tamaño de la ventana
+  const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 800);
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+  // Efecto para actualizar el tamaño de la ventana
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setWindowHeight(window.innerHeight);
+      
+      const handleResize = () => {
+        setWindowHeight(window.innerHeight);
+      };
+      
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
   }, []);
 
   // Funciones para arrastrar el dock
@@ -513,30 +516,30 @@ export default function Dock({
 
   return (
     <div
-      className={`fixed transition-all duration-300 flex items-center gap-3 ${
+      className={`fixed transition-all duration-300 flex items-center gap-4 ${
         isDraggingDock ? 'shadow-blue-500/50 scale-105' : 'shadow-black/30'
       }`}
       style={{
         left: `${dockPosition.x}px`,
-        bottom: `${window.innerHeight - dockPosition.y - 60}px`,
+        bottom: `${windowHeight - dockPosition.y - 60}px`,
         zIndex: 10000,
-        padding: '12px 16px',
+        padding: '16px 20px',
       }}
       onMouseDown={handleDockDragStart}
     >
       {/* Botones de control principales */}
-      <div className="flex items-center gap-2 bg-gray-800/90 backdrop-blur-md border border-gray-600/50 rounded-2xl p-2 shadow-xl">
+      <div className="flex items-center gap-3 bg-gradient-to-r from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl border border-gray-600/40 rounded-3xl p-3 shadow-2xl shadow-black/50">
         {/* Botón Stop CSS Pro */}
         <button 
-          className={`relative p-3 rounded-xl transition-all duration-200 group ${
+          className={`relative p-4 rounded-2xl transition-all duration-300 group overflow-hidden ${
             !inspectorMode 
-              ? 'bg-red-500/20 text-red-400 border border-red-500/30 shadow-lg shadow-red-500/20' 
-              : 'text-gray-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 border border-transparent'
+              ? 'bg-gradient-to-br from-red-500/30 via-red-500/20 to-red-600/30 text-red-300 border border-red-400/50 shadow-lg shadow-red-500/30' 
+              : 'text-gray-400 hover:bg-gradient-to-br hover:from-red-500/20 hover:to-red-600/20 hover:text-red-300 hover:border-red-400/30 border border-gray-600/30 hover:shadow-lg hover:shadow-red-500/20'
           }`}
           onClick={stopCssPro}
           title="Detener CSS Pro Inspector"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:scale-110">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 relative z-10">
             <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
             <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
             <path d="M13.022 17.945a9.308 9.308 0 0 1 -1.022 .055c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.195 .325 -.394 .636 -.596 .935" />
@@ -544,23 +547,29 @@ export default function Dock({
             <path d="M21 17v5" />
           </svg>
           
-          {/* Indicador de estado */}
+          {/* Efecto de brillo */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          
+          {/* Indicador de estado mejorado */}
           {!inspectorMode && (
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            <div className="absolute -top-1 -right-1 flex items-center justify-center">
+              <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
+              <div className="absolute w-3 h-3 bg-red-400 rounded-full animate-ping opacity-75" />
+            </div>
           )}
         </button>
 
-        {/* Separador */}
-        <div className="w-px h-8 bg-gray-600/50" />
+        {/* Separador elegante */}
+        <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-500/50 to-transparent" />
 
-        {/* Botón Show CSS - Solo modal, sin inspector */}
+        {/* Botón Show CSS mejorado */}
         <button 
-          className={`relative p-3 rounded-xl transition-all duration-300 ease-out group min-w-[44px] min-h-[44px] flex items-center justify-center ${
+          className={`relative p-4 rounded-2xl transition-all duration-300 ease-out group min-w-[52px] min-h-[52px] flex items-center justify-center overflow-hidden ${
             showCssPanel 
-              ? 'bg-blue-500/25 text-blue-300 border border-blue-400/40 shadow-lg shadow-blue-500/25 ring-2 ring-blue-500/20' 
+              ? 'bg-gradient-to-br from-blue-500/30 via-blue-500/20 to-cyan-500/30 text-blue-300 border border-blue-400/50 shadow-xl shadow-blue-500/30 ring-2 ring-blue-400/30 scale-105' 
               : (externalSelectedElement || selectedElement)
-              ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-md shadow-emerald-500/15'
-              : 'text-gray-400 hover:bg-blue-500/10 hover:text-blue-400 hover:border-blue-500/20 border border-transparent hover:shadow-md hover:shadow-blue-500/10'
+              ? 'bg-gradient-to-br from-emerald-500/25 via-emerald-500/15 to-green-500/25 text-emerald-300 border border-emerald-400/40 shadow-lg shadow-emerald-500/20'
+              : 'text-gray-400 hover:bg-gradient-to-br hover:from-blue-500/20 hover:to-cyan-500/20 hover:text-blue-300 hover:border-blue-400/40 border border-gray-600/30 hover:shadow-lg hover:shadow-blue-500/20 hover:scale-105'
           }`}
           onClick={showCss}
           title={
@@ -573,16 +582,16 @@ export default function Dock({
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            width="18" 
-            height="18" 
+            width="20" 
+            height="20" 
             viewBox="0 0 24 24" 
             fill="none" 
             stroke="currentColor" 
             strokeWidth="2" 
             strokeLinecap="round" 
             strokeLinejoin="round" 
-            className={`transition-all duration-300 ${
-              showCssPanel ? 'rotate-12 scale-110' : 'group-hover:scale-105'
+            className={`transition-all duration-300 relative z-10 ${
+              showCssPanel ? 'rotate-12 scale-110' : 'group-hover:scale-110 group-hover:rotate-6'
             }`}
           >
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -592,29 +601,38 @@ export default function Dock({
             <polyline points="10,9 9,9 8,9"/>
           </svg>
           
-          {/* Indicadores de estado */}
+          {/* Efecto de brillo */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          
+          {/* Indicadores de estado mejorados */}
           {showCssPanel && (
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full shadow-lg shadow-blue-500/50">
-              <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-75" />
+            <div className="absolute -top-1 -right-1 flex items-center justify-center">
+              <div className="w-4 h-4 bg-blue-400 rounded-full shadow-xl shadow-blue-500/60">
+                <div className="absolute inset-0 bg-blue-300 rounded-full animate-ping opacity-75" />
+                <div className="absolute inset-1 bg-white rounded-full opacity-80" />
+              </div>
             </div>
           )}
           
           {selectedElement && !showCssPanel && (
-            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
+            <div className="absolute -top-1 -right-1 flex items-center justify-center">
+              <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-500/50" />
+              <div className="absolute w-3 h-3 bg-emerald-300 rounded-full animate-ping opacity-75" />
+            </div>
           )}
         </button>
       </div>
 
-      {/* Dock principal de herramientas */}
-      <div className="bg-gray-800/90 backdrop-blur-md border border-gray-600/50 rounded-2xl shadow-2xl p-2">
-        <div className="flex items-center gap-1 cursor-grab active:cursor-grabbing select-none">
+      {/* Dock principal de herramientas mejorado */}
+      <div className="bg-gradient-to-r from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl border border-gray-600/40 rounded-3xl shadow-2xl shadow-black/50 p-3">
+        <div className="flex items-center gap-2 cursor-grab active:cursor-grabbing select-none">
           {dockTools.map((tool, index) => (
             <React.Fragment key={tool.id}>
               <button
-                className={`relative p-3 rounded-xl transition-all duration-200 group ${
+                className={`relative p-4 rounded-2xl transition-all duration-300 group overflow-hidden ${
                   tool.active 
-                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30 shadow-lg shadow-blue-500/20 scale-105' 
-                    : 'text-gray-400 hover:bg-gray-700/50 hover:text-white hover:scale-105 border border-transparent hover:border-gray-600/30'
+                    ? 'bg-gradient-to-br from-blue-500/30 via-blue-500/20 to-cyan-500/30 text-blue-300 border border-blue-400/50 shadow-xl shadow-blue-500/30 scale-110 ring-2 ring-blue-400/20' 
+                    : 'text-gray-400 hover:bg-gradient-to-br hover:from-gray-700/60 hover:to-gray-600/60 hover:text-white hover:scale-110 border border-gray-600/30 hover:border-gray-500/50 hover:shadow-lg hover:shadow-gray-500/20'
                 }`}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -623,33 +641,42 @@ export default function Dock({
                 title={tool.label}
               >
                 {typeof tool.icon === 'string' ? (
-                  <span className="text-sm font-bold transition-transform group-hover:scale-110">{tool.icon}</span>
+                  <span className="text-base font-bold transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 relative z-10">{tool.icon}</span>
                 ) : (
-                  <tool.icon size={16} className="transition-transform group-hover:scale-110" />
+                  <tool.icon size={18} className="transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 relative z-10" />
                 )}
+                
+                {/* Efecto de brillo */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                 
                 {/* Indicador de herramienta activa mejorado */}
                 {tool.active && (
                   <>
-                    <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-                    <div className="absolute inset-0 bg-blue-500/10 rounded-xl animate-pulse" />
+                    <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 flex items-center justify-center">
+                      <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse shadow-lg shadow-blue-500/50" />
+                      <div className="absolute w-3 h-3 bg-blue-300 rounded-full animate-ping opacity-75" />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-cyan-500/10 rounded-2xl animate-pulse" />
                   </>
                 )}
 
-                {/* Efecto de hover */}
-                <div className="absolute inset-0 bg-white/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                {/* Efecto de hover mejorado */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-white/10 to-white/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300" />
               </button>
               
-              {/* Separador mejorado */}
+              {/* Separador elegante */}
               {index === dockTools.length - 2 && (
-                <div className="w-px h-6 bg-gray-600/50 mx-1" />
+                <div className="w-px h-8 bg-gradient-to-b from-transparent via-gray-500/50 to-transparent mx-2" />
               )}
             </React.Fragment>
           ))}
         </div>
        </div>
-      {/* Indicador de arrastre - ahora en la parte superior */}
-      <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full opacity-60" />
+      {/* Indicador de arrastre mejorado */}
+      <div className="absolute -top-2 -right-2 flex items-center justify-center">
+        <div className="w-4 h-4 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full opacity-70 shadow-lg shadow-blue-500/40" />
+        <div className="absolute w-4 h-4 bg-blue-300 rounded-full animate-ping opacity-50" />
+      </div>
     </div>
   );
 }
@@ -701,8 +728,7 @@ export default function Dock({
     const importantStyles = [
       'display', 'position', 'width', 'height', 'margin', 'padding',
       'backgroundColor', 'color', 'fontSize', 'fontFamily', 'fontWeight',
-      'border', 'borderRadius', 'boxShadow', 'transform', 'opacity',
-      'flexDirection', 'alignItems', 'justifyContent', 'textAlign'
+      'border', 'borderRadius', 'boxShadow', 'transform', 'opacity'
     ];
     
     modal.innerHTML = `

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronDown, ChevronRight, Eye, Copy, X, Target, Code, Palette, Settings, Trash2, Plus as PlusIcon, Minus as MinusIcon } from 'lucide-react';
 
-import { IconBackground, IconBorderSides, IconCarouselVertical, IconTiltShift, IconBoxPadding, IconWashDryShade,IconStackFront, IconSquareRounded } from '@tabler/icons-react';
+import { IconBackground, IconBorderSides, IconCarouselVertical, IconTiltShift, IconBoxPadding, IconWashDryShade,IconStackFront, IconSquareRounded, IconMaximize, IconReplace } from '@tabler/icons-react';
 
 
+import svgLogo from '../assets/logo.svg';
+import LogoApp from '../components/LogoApp';
 
 import styles from "../components/Csspro.module.css";
 import  "../components/Csspro.css";
@@ -34,7 +36,8 @@ import Border, { BorderValues } from '../components/Border/Border';
 import Display, { DisplayValues } from '../components/Display/Display';
 import CustomPickColor from '../components/ui/CustomPickColor';
 import Dock from '../components/Dock/Dock';
-
+import { DotPattern } from '../components/dot-parttern';
+import { cn } from "@clarity/utils/cn"
 // ... (rest of the code remains the same)
 
 
@@ -231,10 +234,17 @@ export default function CSSProEditor() {
       return next;
     });
   }, [selectedElement]);
-  const [panelPosition, setPanelPosition] = useState({ x: 20, y: 20 });
+  const [panelPosition, setPanelPosition] = useState(() => {
+    // Para top-left siempre debe ser 20px, 20px
+    return { x: 20, y: 20 };
+  });
   const [isDraggingPanel, setIsDraggingPanel] = useState(false);
   const [panelDragOffset, setPanelDragOffset] = useState({ x: 0, y: 0 });
-  const [panelSize, setPanelSize] = useState({ width: 384, height: window.innerHeight - 32 });
+  const dragPositionRef = useRef({ x: 0, y: 0 }); // Para posición en tiempo real sin re-renders
+  const [panelSize, setPanelSize] = useState({ 
+    width: 384, 
+    height: typeof window !== 'undefined' ? window.innerHeight - 32 : 600 
+  });
   const [isDragging, setIsDragging] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState({ x: 0, value: 0 });
   const panelRef = useRef<HTMLDivElement>(null);
@@ -242,6 +252,99 @@ export default function CSSProEditor() {
   
   // Estado para la herramienta activa del dock
   const [activeDockTool, setActiveDockTool] = useState('inspector');
+  
+  // Estado para minimizar/expandir el panel
+  const [isMinimized, setIsMinimized] = useState(true);
+  
+  // Estado para la posición del panel minimizado (4 esquinas)
+  const [minimizedCorner, setMinimizedCorner] = useState<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('top-left');
+
+  // Función para obtener la posición según la esquina seleccionada (solo para el botón de cambio manual)
+  const getMinimizedPosition = useCallback(() => {
+    const margin = 60; // Margen para otras esquinas
+    const topLeftMargin = 20; // Margen específico para top-left: SIEMPRE 20px
+    const panelWidth = 128;
+    const panelHeight = 32;
+
+    switch (minimizedCorner) {
+      case 'top-left':
+        return { x: topLeftMargin, y: topLeftMargin }; // SIEMPRE left: 20px, top: 20px
+      case 'top-right':
+        return { x: window.innerWidth - panelWidth - margin, y: margin };
+      case 'bottom-left':
+        return { x: margin, y: window.innerHeight - panelHeight - margin };
+      case 'bottom-right':
+        return { x: window.innerWidth - panelWidth - margin, y: window.innerHeight - panelHeight - margin };
+      default:
+        return { x: topLeftMargin, y: topLeftMargin }; // Default también 20px
+    }
+  }, [minimizedCorner]);
+
+  // Función para obtener la posición de expansión según la esquina
+  const getExpandedPosition = useCallback(() => {
+    const expandedWidth = 384;
+    const expandedHeight = window.innerHeight - 32;
+    const margin = 20;
+    
+    switch (minimizedCorner) {
+      case 'top-left':
+        // Expandir hacia abajo y derecha desde top-left
+        return { x: margin, y: margin };
+      case 'top-right':
+        // Expandir hacia abajo y izquierda desde top-right
+        return { x: window.innerWidth - expandedWidth - margin, y: margin };
+      case 'bottom-left':
+        // Expandir hacia arriba y derecha desde bottom-left
+        return { x: margin, y: margin };
+      case 'bottom-right':
+        // Expandir hacia arriba y izquierda desde bottom-right
+        return { x: window.innerWidth - expandedWidth - margin, y: margin };
+      default:
+        return { x: margin, y: margin };
+    }
+  }, [minimizedCorner]);
+
+  // Función para cambiar a la siguiente esquina
+  const cycleToNextCorner = useCallback(() => {
+    const corners: Array<'top-left' | 'top-right' | 'bottom-right' | 'bottom-left'> = 
+      ['top-left', 'top-right', 'bottom-right', 'bottom-left'];
+    const currentIndex = corners.indexOf(minimizedCorner);
+    const nextIndex = (currentIndex + 1) % corners.length;
+    setMinimizedCorner(corners[nextIndex]);
+  }, [minimizedCorner]);
+
+  // Actualizar el tamaño del panel después del montaje del componente
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setPanelSize(prev => ({ ...prev, height: window.innerHeight - 32 }));
+    }
+  }, []);
+
+  // Actualizar posición cuando cambia el estado de minimizado
+  useEffect(() => {
+    if (!isMinimized) {
+      // Cuando se expande, ajustar posición según la esquina
+      const newPosition = getExpandedPosition();
+      setPanelPosition(newPosition);
+    } else {
+      // Cuando se minimiza, usar la posición de la esquina
+      const newPosition = getMinimizedPosition();
+      setPanelPosition(newPosition);
+    }
+  }, [isMinimized, minimizedCorner, getMinimizedPosition, getExpandedPosition]);
+
+  // Listener para redimensionar ventana y actualizar posición
+  useEffect(() => {
+    const handleResize = () => {
+      if (isMinimized) {
+        const newPosition = getMinimizedPosition();
+        setPanelPosition(newPosition);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMinimized, getMinimizedPosition]);
 
   // Crear overlay para resaltar elemento seleccionado
   const createOverlay = useCallback(() => {
@@ -478,46 +581,119 @@ export default function CSSProEditor() {
 
   // Función para manejar el inicio del drag del panel
   const handlePanelDragStart = useCallback((e: React.MouseEvent) => {
-    // Solo permitir drag desde el header o el drag handle
+    // Solo permitir drag desde el header o el drag handle, o cuando esté minimizado
     const target = e.target as HTMLElement;
     const isHeader = target.closest('.panel-header') || target.classList.contains('drag-handle');
+    const isMinimizedPanel = target.closest('.minimized-panel');
     
-    if (isHeader) {
+    if (isHeader || isMinimizedPanel) {
       e.preventDefault();
+      e.stopPropagation();
+      
       setIsDraggingPanel(true);
       const rect = panelRef.current?.getBoundingClientRect();
       if (rect) {
-        setPanelDragOffset({
-          x: e.clientX - rect.left,
-          y: e.clientY - rect.top
-        });
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+        setPanelDragOffset({ x: offsetX, y: offsetY });
+        dragPositionRef.current = { x: rect.left, y: rect.top };
       }
+      
+      // Optimizaciones para drag fluido
       document.body.style.cursor = 'grabbing';
+      document.body.style.userSelect = 'none';
+      document.body.style.pointerEvents = 'none';
+      if (panelRef.current) {
+        panelRef.current.style.pointerEvents = 'auto';
+        panelRef.current.style.zIndex = '10000';
+      }
     }
   }, []);
 
-  // Función para manejar el movimiento del drag del panel
+  // Función optimizada para manejar el movimiento del drag del panel
   const handlePanelDragMove = useCallback((e: MouseEvent) => {
-    if (!isDraggingPanel) return;
+    if (!isDraggingPanel || !panelRef.current) return;
+    
+    e.preventDefault();
     
     const newX = e.clientX - panelDragOffset.x;
     const newY = e.clientY - panelDragOffset.y;
     
-    // Límites de la ventana
-    const maxX = window.innerWidth - 400; // ancho del panel
-    const maxY = window.innerHeight - 600; // alto del panel
+    // Límites de la ventana según el estado del panel
+    const panelWidth = isMinimized ? 128 : 400;
+    const panelHeight = isMinimized ? 32 : 600;
+    const maxX = window.innerWidth - panelWidth;
+    const maxY = window.innerHeight - panelHeight;
     
-    setPanelPosition({
-      x: Math.max(0, Math.min(newX, maxX)),
-      y: Math.max(0, Math.min(newY, maxY))
-    });
-  }, [isDraggingPanel, panelDragOffset]);
+    const constrainedX = Math.max(0, Math.min(newX, maxX));
+    const constrainedY = Math.max(0, Math.min(newY, maxY));
+    
+    // Actualizar posición directamente en el DOM para máxima fluidez
+    dragPositionRef.current = { x: constrainedX, y: constrainedY };
+    
+    // CORREGIR: Usar left/top directamente en lugar de transform
+    panelRef.current.style.left = `${constrainedX}px`;
+    panelRef.current.style.top = `${constrainedY}px`;
+    
+  }, [isDraggingPanel, panelDragOffset, isMinimized]);
 
   // Función para terminar el drag del panel
   const handlePanelDragEnd = useCallback(() => {
-    setIsDraggingPanel(false);
+    if (!isDraggingPanel) return;
+    
+    const finalX = dragPositionRef.current.x;
+    const finalY = dragPositionRef.current.y;
+    
+    // Restaurar estilos del body
     document.body.style.cursor = 'default';
-  }, []);
+    document.body.style.userSelect = 'auto';
+    document.body.style.pointerEvents = 'auto';
+    
+    if (panelRef.current) {
+      panelRef.current.style.pointerEvents = 'auto';
+      panelRef.current.style.zIndex = '9999';
+      // CORREGIR: No necesitamos resetear transform ya que no lo usamos
+    }
+    
+    // Si está minimizado, hacer snap a la esquina más cercana
+    if (isMinimized) {
+      const panelWidth = 128;
+      const panelHeight = 32;
+      const centerX = finalX + panelWidth / 2;
+      const centerY = finalY + panelHeight / 2;
+      const windowCenterX = window.innerWidth / 2;
+      const windowCenterY = window.innerHeight / 2;
+      
+      const margin = 60; // Margen para otras esquinas
+      const topLeftMargin = 20; // Margen específico para top-left
+      let snapPosition = { x: finalX, y: finalY };
+      let newCorner: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = minimizedCorner;
+      
+      // Determinar cuadrante y posición de snap
+      if (centerX < windowCenterX && centerY < windowCenterY) {
+        snapPosition = { x: topLeftMargin, y: topLeftMargin };
+        newCorner = 'top-left';
+      } else if (centerX >= windowCenterX && centerY < windowCenterY) {
+        snapPosition = { x: window.innerWidth - panelWidth - margin, y: margin };
+        newCorner = 'top-right';
+      } else if (centerX < windowCenterX && centerY >= windowCenterY) {
+        snapPosition = { x: margin, y: window.innerHeight - panelHeight - margin };
+        newCorner = 'bottom-left';
+      } else {
+        snapPosition = { x: window.innerWidth - panelWidth - margin, y: window.innerHeight - panelHeight - margin };
+        newCorner = 'bottom-right';
+      }
+      
+      // Actualizar estados finales
+      setPanelPosition(snapPosition);
+      setMinimizedCorner(newCorner);
+    } else {
+      // Para panel expandido, solo actualizar la posición final
+      setPanelPosition({ x: finalX, y: finalY });
+    }
+    
+    setIsDraggingPanel(false);
+  }, [isDraggingPanel, isMinimized, minimizedCorner]);
 
   // Funciones para manejar el arrastre de spacing
   const handleSpacingMouseDown = useCallback((property: string, event: React.MouseEvent) => {
@@ -823,68 +999,133 @@ export default function CSSProEditor() {
 
   return (
     <>
-      {/* Dock Flotante */}
-      <Dock 
-        onToolSelect={handleDockToolSelect}
-        activeTool={activeDockTool}
-        inspectorMode={isInspectorMode}
-        onInspectorToggle={handleInspectorToggle}
-        selectedElement={selectedElement}
-      />
+      {/* Dock Flotante - Solo mostrar cuando el panel NO esté minimizado */}
+      {!isMinimized && (
+        <Dock 
+          onToolSelect={handleDockToolSelect}
+          activeTool={activeDockTool}
+          inspectorMode={isInspectorMode}
+          onInspectorToggle={handleInspectorToggle}
+          selectedElement={selectedElement}
+        />
+      )}
 
       {/* Panel lateral arrastrable */}
       <div 
         ref={panelRef}
-        className={`fixed w-96 h-[calc(100vh-2rem)] bg-primary-bg border border-secondary-bg text-white font-sans z-[9999] flex flex-col shadow-2xl rounded-lg overflow-hidden transition-all duration-200 z-50 ${
-          isDraggingPanel ? 'shadow-3xl scale-105' : 'hover:shadow-3xl'
+        className={`fixed bg-primary-bg border border-secondary-bg text-white font-sans z-[9999] flex flex-col shadow-2xl rounded-lg overflow-hidden z-50 ${
+          isDraggingPanel ? 'transition-none scale-105 shadow-3xl' : 'transition-all duration-300 hover:shadow-3xl'
+        } ${
+          isMinimized 
+            ? 'h-11' 
+            : 'w-96 h-[calc(100vh-2rem)]'
         }`}
         style={{
           left: `${panelPosition.x}px`,
           top: `${panelPosition.y}px`,
-          resize: 'both',
-          minWidth: '320px',
-          minHeight: '400px',
-          maxWidth: '90vw',
-          maxHeight: '90vh'
+          resize: isMinimized ? 'none' : 'both',
+          minWidth: isMinimized ? '300px' : '320px',
+          minHeight: isMinimized ? '44px' : '400px',
+          maxWidth: isMinimized ? '128px' : '90vw',
+          maxHeight: isMinimized ? '32px' : '90vh',
+          willChange: isDraggingPanel ? 'transform' : 'auto'
         }}
       >
-        {/* Drag handle visible */}
+        {/* Vista minimizada */}
+        {isMinimized ? (
+          <div 
+            className="flex justify-between items-center px-3 w-full h-full rounded border backdrop-blur-md transition-colors select-none minimized-panel cursor-grab active:cursor-grabbing bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] border-secondary-bg group hover:bg-primary-bg/90"
+           
+            onMouseDown={handlePanelDragStart}
+          >
+            <div className="flex gap-2 items-center">
+              <div>
+                <LogoApp variant="white" size={42} className="w-[60px] h-[60px]" />
+              </div>
+              {/* Ícono de inspector */}
+              <div className={`w-3 h-3 rounded-full border  ${isInspectorMode ? 'border-none bg-pikend-bg' : 'bg-secondary-bg border-pikend-bg/10'}`} />
+              
+              {/* Ícono de notificación */}
+              <div className={`w-3 h-3 rounded-full border ${selectedElement ? 'border-none bg-pikend-bg' : 'bg-secondary-bg border-pikend-bg/10'}`} />
+              
+             
+            </div>
+            
+            <div className="flex gap-1 items-center">
+              {/* Botón de expandir (icono de open) */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMinimized(false);
+                  // La posición se ajustará automáticamente por el useEffect
+                }}
+                className="flex justify-center items-center w-7 h-7 text-white rounded shadow-sm transition-colors duration-200 cursor-pointer bg-secondary-bg hover:bg-pikend-bg/20"
+                title="Expand panel"
+              >
+                <IconMaximize size={12} />
+              </button>
+              
+              {/* Botón para cambiar posición (visible en hover) */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  cycleToNextCorner();
+                }}
+                className="flex justify-center items-center w-7 h-7 text-xs text-gray-300 rounded duration-200 cursor-pointer group-hover:opacity-100 bg-secondary-bg hover:bg-pikend-bg/20"
+                title={`Move to ${minimizedCorner === 'top-left' ? 'top-right' : 
+                  minimizedCorner === 'top-right' ? 'bottom-right' : 
+                  minimizedCorner === 'bottom-right' ? 'bottom-left' : 'top-left'}`}
+              >
+                <IconReplace size={12} />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Drag handle visible */}
+            <div 
+              className="absolute top-2 left-1/2 z-10 w-8 h-1 bg-gray-600 rounded-full transition-colors transform -translate-x-1/2 drag-handle cursor-grab hover:bg-gray-500"
+              onMouseDown={handlePanelDragStart}
+            />
+            
+            {/* Botón para minimizar */}
+            <button
+              onClick={() => setIsMinimized(true)}
+              className="flex absolute top-2 right-2 z-10 justify-center items-center w-7 h-7 text-gray-300 rounded transition-colors cursor-pointer bg-secondary-bg hover:bg-pikend-bg/20 hover:text-white"
+              title="Minimize panel"
+            >
+              <MinusIcon size={12} />
+            </button>
+            
+           
         <div 
-          className="drag-handle absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gray-600 rounded-full cursor-grab hover:bg-gray-500 transition-colors z-10"
-          onMouseDown={handlePanelDragStart}
-        />
-        
-        {/* Indicador de posición */}
-        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-        {/* Header */}
-        <div 
-          className="panel-header  pt-6 border-b border-secondary-bg bg-primary-bg cursor-grab"
+          className="pt-6 border-b panel-header border-secondary-bg bg-primary-bg cursor-grab"
           onMouseDown={handlePanelDragStart}
         >
           {selectedElement ? (
             <>
               {/* Element Header with actions */}
-              <div className="flex items-center justify-between mb-3 px-3">
-                <div className="flex items-center gap-2">
+              <div className="flex justify-between items-center px-3 mb-3">
+                <div className="flex gap-2 items-center">
                   <span className="text-lg font-bold text-white">
                     {selectedElement.tagName.toLowerCase()}
                   </span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex gap-1 items-center">
                   <button 
-                    className="p-2 cursor-pointer hover:bg-secondary-bg rounded"
+                    className="p-2 rounded cursor-pointer hover:bg-secondary-bg"
                     title="Copy element"
                   >
                     <Copy size={20} className="text-gray-400" />
                   </button>
                   <button 
-                    className="p-2 cursor-pointer hover:bg-secondary-bg rounded"
+                    className="p-2 rounded cursor-pointer hover:bg-secondary-bg"
                     title="Expand element"
                   >
                     <Eye size={20} className="text-gray-400" />
                   </button>
                   <button 
-                    className="p-2 cursor-pointer hover:bg-secondary-bg rounded"
+                    className="p-2 rounded cursor-pointer hover:bg-secondary-bg"
                     title="Delete element"
                   >
                     <Trash2 size={20} className="text-gray-400" />
@@ -896,7 +1137,7 @@ export default function CSSProEditor() {
                       setSections([]);
                       updateOverlay(null);
                     }}
-                    className="p-2 cursor-pointer hover:bg-secondary-bg rounded"
+                    className="p-2 rounded cursor-pointer hover:bg-secondary-bg"
                     title="Close inspector"
                   >
                     <X size={20} className="text-gray-400" />
@@ -905,8 +1146,8 @@ export default function CSSProEditor() {
               </div>
 
               {/* Element dimensions */}
-              <div className="flex items-center gap-2 mb-3">
-                <div className="flex items-center gap-1 text-gray-400">
+              <div className="flex gap-2 items-center mb-3">
+                <div className="flex gap-1 items-center text-gray-400">
                   <div className="w-3 h-3 border border-gray-500"></div>
                   <span className="text-xs">
                     {Math.round(selectedElement.getBoundingClientRect().width)}×{Math.round(selectedElement.getBoundingClientRect().height)}
@@ -915,8 +1156,8 @@ export default function CSSProEditor() {
               </div>
 
               {/* Font info */}
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex items-center gap-1 text-gray-400">
+              <div className="flex gap-2 items-center mb-4">
+                <div className="flex gap-1 items-center text-gray-400">
                   <span className="text-xs">A</span>
                   <span className="text-xs underline">
                     {window.getComputedStyle(selectedElement).fontFamily.split(',')[0].replace(/['"]/g, '')} {window.getComputedStyle(selectedElement).fontSize}
@@ -954,52 +1195,74 @@ export default function CSSProEditor() {
           ) : (
             <>
               {/* Default header when no element selected */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Settings size={16} className="text-gray-400" />
-                  <span className="text-sm font-medium">CSS Pro Inspector</span>
+              <div className="flex justify-between items-center pl-3 mb-3">
+                <div className="flex gap-2 items-center">
+                  <span className="text-sm font-bold">Stylo</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button 
-                    onClick={toggleInspectorMode}
-                    className={`p-2 rounded transition-colors ${
-                      isInspectorMode 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-700 text-gray-400 hover:text-white'
-                    }`}
-                    title="Toggle Inspector Mode"
-                  >
-                    <Target size={14} />
-                  </button>
-                </div>
+                
               </div>
             </>
           )}
         </div>
 
         {/* Content */}
-        <ScrollArea className="flex-1 h-[200px] w-full ">
+            <ScrollArea className="flex-1 h-[200px] w-full relative">
        
             {!selectedElement ? (
-              <div className="p-4 text-center text-gray-400">
-                <Target size={48} className="mx-auto mb-4 opacity-50" />
-                <p className="text-sm mb-2">Click the inspector button and select any element to view its CSS properties.</p>
-                <p className="text-xs">Inspector mode: {isInspectorMode ? 'ON' : 'OFF'}</p>
-              </div>
+              <>
+                 <div className="flex overflow-hidden absolute inset-0 flex-col justify-center items-center w-full h-full">
+                    <DotPattern
+                      glow={true}
+                      useParentDimensions={true}
+                      areaCircle={20}
+                      className={cn(
+                        "[mask-image:radial-gradient(circle_at_center,white_0%,rgba(255,255,255,0.8)_30%,rgba(255,255,255,0.4)_60%,transparent_100%)]",
+                      )}
+                    />
+                 </div>
+                <div className="relative z-10 p-4 text-center text-gray-400">
+                
+                  <div className="flex justify-center w-full">
+                    <LogoApp  variant="white" size={42} className="w-[260px] h-[260px]"/>
+                  </div>
+                  <p className="mb-2 text-sm">Click the inspector button and select any element to view its CSS properties.</p>
+                  <p className="text-xs">Inspector mode: {isInspectorMode ? 'ON' : 'OFF'}</p>
+                  <div className="flex justify-center mt-11">
+                    <button 
+                      onClick={() => setIsInspectorMode(!isInspectorMode)}
+                      className={cn(
+                        "group relative cursor-pointer inline-flex items-center justify-center px-8 py-3 text-sm font-medium transition-all duration-300 ease-out",
+                        "bg-secondary-bg",
+                        "text-white rounded-full shadow-lg hover:shadow-xl hover:shadow-purple-500/25",
+                        "transform hover:scale-105 active:scale-95",
+                        "border border-white/20 hover:border-white/30",
+                        "before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-r before:from-white/0 before:via-white/10 before:to-white/0",
+                        isInspectorMode && "ring-2 ring-pikend ring-offset-2 ring-offset-gray-900"
+                      )}
+                    >
+                      <Target className="mr-2 w-4 h-4 transition-transform group-hover:rotate-12" />
+                      <span className="relative z-10">
+                        {isInspectorMode ? 'Desactivar Inspector' : 'Activar Inspector'}
+                      </span>
+                      <div className="absolute inset-0 bg-gradient-to-r rounded-full opacity-0 blur-xl transition-opacity duration-300 from-purple-400/20 via-pink-400/20 to-red-400/20 group-hover:opacity-100 -z-10" />
+                    </button>
+                  </div>
+                </div>
+               </>
             ) : (
               <div className="p-4">
                 {activeTab === 'design' ? (
                   <div className="space-y-4">
                     {/* Media Queries Selector */}
                     <div className="space-y-3  bg-[#ff80bf0f] rounded-lg">
-                      <div className="flex items-center gap-2 text-gray-400 px-3 pt-3">
+                      <div className="flex gap-2 items-center px-3 pt-3 text-gray-400">
                           <svg  xmlns="http://www.w3.org/2000/svg"  width="20"  height="20"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  className="icon icon-tabler icons-tabler-outline icon-tabler-devices-pc"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 5h6v14h-6z" /><path d="M12 9h10v7h-10z" /><path d="M14 19h6" /><path d="M17 16v3" /><path d="M6 13v.01" /><path d="M6 16v.01" /></svg>
                         <span className="text-xs">Media:</span>
                       </div>
                       <select 
                         value={selectedMedia}
                         onChange={(e) => setSelectedMedia(e.target.value)}
-                        className="w-full  text-pink-400 px-3 py-2 rounded text-sm border-none focus:border-none focus:outline-none"
+                        className="px-3 py-2 w-full text-sm text-pink-400 rounded border-none focus:border-none focus:outline-none"
                       >
                         <option value="Auto - screen and (min-width: 1024px)">Auto - screen and (min-width: 1024px)</option>
                         <option value="Mobile - screen and (max-width: 768px)">Mobile - screen and (max-width: 768px)</option>
@@ -1010,8 +1273,8 @@ export default function CSSProEditor() {
 
                     {/* State/Pseudo Selector */}
                     <div className="space-y-3 bg-[#77f0a00d] rounded-lg">
-                      <div className="flex items-center gap-2 text-gray-400 px-3 pt-3">
-                        <div className="w-4 h-4 rounded-full border border-gray-500 flex items-center justify-center">
+                      <div className="flex gap-2 items-center px-3 pt-3 text-gray-400">
+                        <div className="flex justify-center items-center w-4 h-4 rounded-full border border-gray-500">
                           <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
                         </div>
                         <span className="text-xs">State or pseudo</span>
@@ -1019,7 +1282,7 @@ export default function CSSProEditor() {
                       <select 
                         value={selectedState}
                         onChange={(e) => setSelectedState(e.target.value)}
-                        className="w-full bg-transparent text-green-400 px-3 py-2 rounded text-sm border-none focus:border-blue-500 focus:outline-none"
+                        className="px-3 py-2 w-full text-sm text-green-400 bg-transparent rounded border-none focus:border-blue-500 focus:outline-none"
                       >
                         <option value="None">None</option>
                         <option value="hover">:hover</option>
@@ -1034,30 +1297,30 @@ export default function CSSProEditor() {
                     </div>
 
                     {/* Position and Transform Controls */}
-                    <div className="space-y-3 bg-secondary-bg p-3 rounded-lg ">
+                    <div className="p-3 space-y-3 rounded-lg bg-secondary-bg">
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         {/* Position X */}
-                        <div className="space-y-1 flex items-center">
-                          <div className="flex items-center gap-1">
+                        <div className="flex items-center space-y-1">
+                          <div className="flex gap-1 items-center">
                             <span className="text-gray-400">X</span>
                             <span className="text-gray-500">{selectedElement ? Math.round(selectedElement.getBoundingClientRect().left) : 0}</span>
                           </div>
                         </div>
                         
                         {/* Position Y */}
-                        <div className="space-y-1 flex items-center">
-                          <div className="flex items-center gap-1">
+                        <div className="flex items-center space-y-1">
+                          <div className="flex gap-1 items-center">
                             <span className="text-gray-400">Y</span>
                             <span className="text-gray-500">{selectedElement ? Math.round(selectedElement.getBoundingClientRect().top) : 0}</span>
                           </div>
                         </div>
 
                         {/* Rotation */}
-                        <div className="space-y-1 flex items-center">
-                          <label className="text-gray-400 mr-2">
+                        <div className="flex items-center space-y-1">
+                          <label className="mr-2 text-gray-400">
                             <svg  xmlns="http://www.w3.org/2000/svg"  width="15"  height="15"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  className="icon icon-tabler icons-tabler-outline icon-tabler-rotate"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.95 11a8 8 0 1 0 -.5 4m.5 5v-5h-5" /></svg>
                           </label>
-                          <div className="relative flex border-2 border-secondary-bg rounded-lg">
+                          <div className="flex relative rounded-lg border-2 border-secondary-bg">
                             <input
                               type="text"
                               value={editableValues.rotate.value}
@@ -1071,7 +1334,7 @@ export default function CSSProEditor() {
                                   selectedElement.style.setProperty('transform', `rotate(${newValue}${editableValues.rotate.unit})`, 'important');
                                 }
                               }}
-                              className="flex-1 w-full bg-transparent text-white text-xs px-2 py-1 outline-none"
+                              className="flex-1 px-2 py-1 w-full text-xs text-white bg-transparent outline-none"
                               placeholder="0"
                             />
                             <Select 
@@ -1105,7 +1368,7 @@ export default function CSSProEditor() {
                         {/* Width */}
                         <div className="space-y-1">
                           <label className="text-gray-400">W</label>
-                          <div className="relative flex border-2 border-secondary-bg rounded-lg">
+                          <div className="flex relative rounded-lg border-2 border-secondary-bg">
                             <input
                               type="text"
                               value={editableValues.width.value}
@@ -1120,7 +1383,7 @@ export default function CSSProEditor() {
                                   selectedElement.style.width = fullValue;
                                 }
                               }}
-                              className="flex-1  text-white px-2 py-1  text-xs bg-none border border-none  border-r-0 focus:border-green-500 focus:outline-none w-full"
+                              className="flex-1 px-2 py-1 w-full text-xs text-white bg-none border border-r-0 border-none focus:border-green-500 focus:outline-none"
                               placeholder="auto"
                             />
                             <Select 
@@ -1139,7 +1402,7 @@ export default function CSSProEditor() {
                               <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none  focus:border-green-500 focus:outline-none">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-primary-bg border-secondary-bg ">
+                              <SelectContent className="bg-primary-bg border-secondary-bg">
                                 <SelectItem value="px" className="text-white hover:bg-gray-700">px</SelectItem>
                                 <SelectItem value="%" className="text-white hover:bg-gray-700">%</SelectItem>
                                 <SelectItem value="em" className="text-white hover:bg-gray-700">em</SelectItem>
@@ -1155,7 +1418,7 @@ export default function CSSProEditor() {
                         {/* Height */}
                         <div className="space-y-1">
                           <label className="text-gray-400">H</label>
-                          <div className="relative flex border-2 border-secondary-bg rounded-lg">
+                          <div className="flex relative rounded-lg border-2 border-secondary-bg">
                             <input
                               type="text"
                               value={editableValues.height.value}
@@ -1170,7 +1433,7 @@ export default function CSSProEditor() {
                                   selectedElement.style.height = fullValue;
                                 }
                               }}
-                              className="flex-1 text-white px-2 py-1 text-xs bg-none border border-none border-r-0 focus:border-green-500 focus:outline-none w-full"
+                              className="flex-1 px-2 py-1 w-full text-xs text-white bg-none border border-r-0 border-none focus:border-green-500 focus:outline-none"
                               placeholder="auto"
                             />
                             <Select 
@@ -1204,7 +1467,7 @@ export default function CSSProEditor() {
                         {/* Border Radius */}
                         <div className="space-y-1">
                           <label className="text-gray-400">R</label>
-                          <div className="relative flex border-2 border-secondary-bg rounded-lg">
+                          <div className="flex relative rounded-lg border-2 border-secondary-bg">
                             <input
                               type="text"
                               value={editableValues.borderRadius.value}
@@ -1218,7 +1481,7 @@ export default function CSSProEditor() {
                                   selectedElement.style.borderRadius = `${newValue}${editableValues.borderRadius.unit}`;
                                 }
                               }}
-                              className="flex-1 text-white px-2 py-1 text-xs bg-none border border-none border-r-0 focus:border-green-500 focus:outline-none w-full"
+                              className="flex-1 px-2 py-1 w-full text-xs text-white bg-none border border-r-0 border-none focus:border-green-500 focus:outline-none"
                               placeholder="0"
                             />
                             <Select 
@@ -1255,28 +1518,28 @@ export default function CSSProEditor() {
                       <div className="css-pro-visual-spacing-placeholder horizontal bottom"></div>
                       <div className='css-pro-visual-spacing-placeholder vertical left'></div>
                       <div className='css-pro-visual-spacing-placeholder vertical right'></div>
-                      <div className="bg-secondary-bg p-6 rounded-lg ">
+                      <div className="p-6 rounded-lg bg-secondary-bg">
                         
                         {/* Margin Top */}
                         <label 
                           data-css-pro-edit-rule="margin-top" 
                           onMouseDown={(e) => handleSpacingMouseDown('marginTop', e)} 
                           data-css-pro-input 
-                          className="absolute top-2 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg"
+                          className="flex absolute top-2 left-1/2 items-center border transform -translate-x-1/2 border-secondary-bg"
                         >
                           <span 
-                            className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                            className="mr-1 text-xs text-gray-400 cursor-ns-resize hover:text-white"
                             title="Click and drag to change margin-top"
                           >
                             ⇕
                           </span>
-                          <div className="flex items-center gap-1 h-full">
+                          <div className="flex gap-1 items-center h-full">
                             {/* Input con botones +/- personalizado */}
-                            <div className="flex items-center  rounded  h-full w-full">
+                            <div className="flex items-center w-full h-full rounded">
                               <button
                                 type="button"
                                 onClick={() => handleSpacingValueChange('marginTop', Math.max(-999, (spacingValues.marginTop?.value || 0) - 1))}
-                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white transition-colors cursor-pointer hover:bg-secondary-bg"
+                                className="flex justify-center items-center w-full h-full text-gray-400 transition-colors cursor-pointer hover:text-white hover:bg-secondary-bg"
                               >
                                 <MinusIcon size={12} />
                               </button>
@@ -1284,13 +1547,13 @@ export default function CSSProEditor() {
                                 type="text"
                                 value={spacingValues.marginTop?.value || 0}
                                 onChange={(e) => handleSpacingValueChange('marginTop', parseFloat(e.target.value) || 0)}
-                                className="bg-transparent text-white text-xs w-full text-center border-none outline-none w-full"
+                                className="w-full text-xs text-center text-white bg-transparent border-none outline-none"
                                 
                               />
                               <button
                                 type="button"
                                 onClick={() => handleSpacingValueChange('marginTop', Math.min(999, (spacingValues.marginTop?.value || 0) + 1))}
-                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white transition-colors cursor-pointer hover:bg-secondary-bg"
+                                className="flex justify-center items-center w-full h-full text-gray-400 transition-colors cursor-pointer hover:text-white hover:bg-secondary-bg"
                               >
                                 <PlusIcon size={12} />
                               </button>
@@ -1320,21 +1583,21 @@ export default function CSSProEditor() {
                           data-css-pro-edit-rule="margin-bottom" 
                           onMouseDown={(e) => handleSpacingMouseDown('marginBottom', e)} 
                           data-css-pro-input 
-                          className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg"
+                          className="flex absolute bottom-2 left-1/2 items-center border transform -translate-x-1/2 border-secondary-bg"
                         >
                           <span 
-                            className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                            className="mr-1 text-xs text-gray-400 cursor-ns-resize hover:text-white"
                             title="Click and drag to change margin-bottom"
                           >
                             ⇕
                           </span>
-                          <div className="flex items-center gap-1  h-full">
+                          <div className="flex gap-1 items-center h-full">
                             {/* Input con botones +/- personalizado */}
-                            <div className="flex items-center  rounded  h-full w-full">
+                            <div className="flex items-center w-full h-full rounded">
                               <button
                                 type="button"
                                 onClick={() => handleSpacingValueChange('marginBottom', Math.max(-999, (spacingValues.marginBottom?.value || 0) - 1))}
-                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                                className="flex justify-center items-center w-full h-full text-gray-400 transition-colors cursor-pointer hover:text-white hover:bg-gray-600 hover:bg-secondary-bg"
                               >
                                 <MinusIcon size={12} />
                               </button>
@@ -1342,13 +1605,13 @@ export default function CSSProEditor() {
                                 type="text"
                                 value={spacingValues.marginBottom?.value || 0}
                                 onChange={(e) => handleSpacingValueChange('marginBottom', parseFloat(e.target.value) || 0)}
-                                className="bg-transparent text-white text-xs w-full text-center border-none outline-none"
+                                className="w-full text-xs text-center text-white bg-transparent border-none outline-none"
                               
                               />
                               <button
                                 type="button"
                                 onClick={() => handleSpacingValueChange('marginBottom', Math.min(999, (spacingValues.marginBottom?.value || 0) + 1))}
-                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                                className="flex justify-center items-center w-full h-full text-gray-400 transition-colors cursor-pointer hover:text-white hover:bg-gray-600 hover:bg-secondary-bg"
                               >
                                 <PlusIcon size={12} />
                               </button>
@@ -1382,18 +1645,18 @@ export default function CSSProEditor() {
                         >
                           <div className="flex items-center h-full">
                             <span 
-                              className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                              className="mr-1 text-xs text-gray-400 cursor-ns-resize hover:text-white"
                               title="Click and drag to change margin-left"
                             >
                               ⇔
                             </span>
-                            <div className="flex items-center gap-1 h-full">
+                            <div className="flex gap-1 items-center h-full">
                               {/* Input con botones +/- personalizado */}
-                              <div className="flex items-center rounded h-full w-full">
+                              <div className="flex items-center w-full h-full rounded">
                                 <button
                                   type="button"
                                   onClick={() => handleSpacingValueChange('marginLeft', Math.max(-999, (spacingValues.marginLeft?.value || 0) - 1))}
-                                  className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                                  className="flex justify-center items-center w-full h-full text-gray-400 transition-colors cursor-pointer hover:text-white hover:bg-gray-600 hover:bg-secondary-bg"
                                 >
                                   <MinusIcon size={12} />
                                 </button>
@@ -1401,12 +1664,12 @@ export default function CSSProEditor() {
                                   type="text"
                                   value={spacingValues.marginLeft?.value || 0}
                                   onChange={(e) => handleSpacingValueChange('marginLeft', parseFloat(e.target.value) || 0)}
-                                  className="bg-transparent text-white text-xs w-full text-center border-none outline-none"
+                                  className="w-full text-xs text-center text-white bg-transparent border-none outline-none"
                                 />
                                 <button
                                   type="button"
                                   onClick={() => handleSpacingValueChange('marginLeft', Math.min(999, (spacingValues.marginLeft?.value || 0) + 1))}
-                                  className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                                  className="flex justify-center items-center w-full h-full text-gray-400 transition-colors cursor-pointer hover:text-white hover:bg-gray-600 hover:bg-secondary-bg"
                                 >
                                   <PlusIcon size={12} />
                                 </button>
@@ -1441,18 +1704,18 @@ export default function CSSProEditor() {
                         >
                           <div className="flex items-center">
                             <span 
-                              className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                              className="mr-1 text-xs text-gray-400 cursor-ns-resize hover:text-white"
                               title="Click and drag to change margin-right"
                             >
                               ⇔
                             </span>
-                            <div className="flex items-center gap-1 h-full">
+                            <div className="flex gap-1 items-center h-full">
                               {/* Input con botones +/- personalizado */}
-                              <div className="flex items-center rounded h-full w-full">
+                              <div className="flex items-center w-full h-full rounded">
                                 <button
                                   type="button"
                                   onClick={() => handleSpacingValueChange('marginRight', Math.max(-999, (spacingValues.marginRight?.value || 0) - 1))}
-                                  className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                                  className="flex justify-center items-center w-full h-full text-gray-400 transition-colors cursor-pointer hover:text-white hover:bg-gray-600 hover:bg-secondary-bg"
                                 >
                                   <MinusIcon size={12} />
                                 </button>
@@ -1460,12 +1723,12 @@ export default function CSSProEditor() {
                                   type="text"
                                   value={spacingValues.marginRight?.value || 0}
                                   onChange={(e) => handleSpacingValueChange('marginRight', parseFloat(e.target.value) || 0)}
-                                  className="bg-transparent text-white text-xs w-full text-center border-none outline-none"
+                                  className="w-full text-xs text-center text-white bg-transparent border-none outline-none"
                                 />
                                 <button
                                   type="button"
                                   onClick={() => handleSpacingValueChange('marginRight', Math.min(999, (spacingValues.marginRight?.value || 0) + 1))}
-                                  className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                                  className="flex justify-center items-center w-full h-full text-gray-400 transition-colors cursor-pointer hover:text-white hover:bg-gray-600 hover:bg-secondary-bg"
                                 >
                                   <PlusIcon size={12} />
                                 </button>
@@ -1492,12 +1755,12 @@ export default function CSSProEditor() {
                         </label>
 
                         {/* Padding container */}
-                        <div className="bg-secondary-bg p-10 m-8 rounded relative">
+                        <div className="relative p-10 m-8 rounded bg-secondary-bg">
                           
                           {/* Padding Top */}
-                          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg rounded-lg">
+                          <div className="flex absolute top-2 left-1/2 items-center rounded-lg border transform -translate-x-1/2 border-secondary-bg">
                             <span 
-                              className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                              className="mr-1 text-xs text-gray-400 cursor-ns-resize hover:text-white"
                               onMouseDown={(e) => handleSpacingMouseDown('paddingTop', e)}
                               title="Click and drag to change padding-top"
                             >
@@ -1508,7 +1771,7 @@ export default function CSSProEditor() {
                               min="0"
                               value={spacingValues.paddingTop?.value || 0}
                               onChange={(e) => handleSpacingValueChange('paddingTop', parseFloat(e.target.value) || 0)}
-                              className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
+                              className="w-8 text-xs text-center text-white bg-transparent border-none outline-none"
                               style={{ width: `${Math.max(2, String(spacingValues.paddingTop?.value || 0).length)}ch` }}
                             />
                             <Select 
@@ -1530,9 +1793,9 @@ export default function CSSProEditor() {
                           </div>
 
                           {/* Padding Bottom */}
-                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg rounded-lg">
+                          <div className="flex absolute bottom-0 left-1/2 items-center rounded-lg border transform -translate-x-1/2 border-secondary-bg">
                             <span 
-                              className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                              className="mr-1 text-xs text-gray-400 cursor-ns-resize hover:text-white"
                               onMouseDown={(e) => handleSpacingMouseDown('paddingBottom', e)}
                               title="Click and drag to change padding-bottom"
                             >
@@ -1543,7 +1806,7 @@ export default function CSSProEditor() {
                               min="0"
                               value={spacingValues.paddingBottom?.value || 0}
                               onChange={(e) => handleSpacingValueChange('paddingBottom', parseFloat(e.target.value) || 0)}
-                              className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
+                              className="w-8 text-xs text-center text-white bg-transparent border-none outline-none"
                               style={{ width: `${Math.max(2, String(spacingValues.paddingBottom?.value || 0).length)}ch` }}
                             />
                             <Select 
@@ -1568,7 +1831,7 @@ export default function CSSProEditor() {
                           <div className="absolute left-[-19px] top-1/2 transform -translate-y-1/2 -rotate-90 origin-center border border-secondary-bg rounded-lg">
                             <div className="flex items-center">
                               <span 
-                                className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                                className="mr-1 text-xs text-gray-400 cursor-ns-resize hover:text-white"
                                 onMouseDown={(e) => handleSpacingMouseDown('paddingLeft', e)}
                                 title="Click and drag to change padding-left"
                               >
@@ -1579,7 +1842,7 @@ export default function CSSProEditor() {
                                 min="0"
                                 value={spacingValues.paddingLeft?.value || 0}
                                 onChange={(e) => handleSpacingValueChange('paddingLeft', parseFloat(e.target.value) || 0)}
-                                className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
+                                className="w-8 text-xs text-center text-white bg-transparent border-none outline-none"
                                 style={{ width: `${Math.max(2, String(spacingValues.paddingLeft?.value || 0).length)}ch` }}
                               />
                               <Select 
@@ -1605,7 +1868,7 @@ export default function CSSProEditor() {
                           <div className="absolute right-[-19px] top-1/2 transform -translate-y-1/2 rotate-90 origin-center border border-secondary-bg rounded-lg">
                             <div className="flex items-center">
                               <span 
-                                className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                                className="mr-1 text-xs text-gray-400 cursor-ns-resize hover:text-white"
                                 onMouseDown={(e) => handleSpacingMouseDown('paddingRight', e)}
                                 title="Click and drag to change padding-right"
                               >
@@ -1616,7 +1879,7 @@ export default function CSSProEditor() {
                                 min="0"
                                 value={spacingValues.paddingRight?.value || 0}
                                 onChange={(e) => handleSpacingValueChange('paddingRight', parseFloat(e.target.value) || 0)}
-                                className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
+                                className="w-8 text-xs text-center text-white bg-transparent border-none outline-none"
                                 style={{ width: `${Math.max(2, String(spacingValues.paddingRight?.value || 0).length)}ch` }}
                               />
                               <Select 
@@ -1640,7 +1903,7 @@ export default function CSSProEditor() {
 
                           {/* Element center */}
                           <div className="bg-primary-bg p-8 rounded text-center border border-secondary-bg min-h-[80px] flex flex-col justify-center">
-                            <div className="text-xs text-gray-300 mb-1 font-medium">
+                            <div className="mb-1 text-xs font-medium text-gray-300">
                               {selectedElement?.tagName.toLowerCase() || 'element'}
                             </div>
                             <div className="text-xs text-gray-400">
@@ -1649,11 +1912,11 @@ export default function CSSProEditor() {
                           </div>
 
                           {/* Padding label */}
-                          <span className="absolute top-1 left-2 text-xs text-gray-400 font-medium">Padding</span>
+                          <span className="absolute top-1 left-2 text-xs font-medium text-gray-400">Padding</span>
                         </div>
 
                         {/* Margin label */}
-                        <span className="absolute top-1 left-2 text-xs text-gray-400 font-medium">Margin</span>
+                        <span className="absolute top-1 left-2 text-xs font-medium text-gray-400">Margin</span>
                       </div>
                     </div>
                     <Accordion type="single" collapsible>
@@ -1671,7 +1934,7 @@ export default function CSSProEditor() {
                           />
                         </AccordionContent>
                       </AccordionItem>
-                      <AccordionItem className='border-b-2 border-secondary-bg ' value="item-2">
+                      <AccordionItem className='border-b-2 border-secondary-bg' value="item-2">
                         <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
                           <IconSquareRounded stroke={2} size={21} />
                           Background</AccordionTrigger>
@@ -1682,7 +1945,7 @@ export default function CSSProEditor() {
                           />
                         </AccordionContent>
                       </AccordionItem>
-                      <AccordionItem className='border-b-2 border-secondary-bg ' value="item-3">
+                      <AccordionItem className='border-b-2 border-secondary-bg' value="item-3">
                         <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
                           <IconTiltShift stroke={2} size={21}/>
                           Filters</AccordionTrigger>
@@ -1693,7 +1956,7 @@ export default function CSSProEditor() {
                           />
                         </AccordionContent>
                       </AccordionItem>
-                      <AccordionItem  className='border-b-2 border-secondary-bg ' value="item-4">
+                      <AccordionItem  className='border-b-2 border-secondary-bg' value="item-4">
                         <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
                           <IconBoxPadding stroke={2} size={21}/>
                           Text shadow</AccordionTrigger>
@@ -1715,7 +1978,7 @@ export default function CSSProEditor() {
                           />
                         </AccordionContent>
                       </AccordionItem>
-                      <AccordionItem className='border-b-2 border-secondary-bg ' value="item-6">
+                      <AccordionItem className='border-b-2 border-secondary-bg' value="item-6">
                         <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
                           <IconStackFront stroke={2} size={21}/>
                           Positioning</AccordionTrigger>
@@ -1726,7 +1989,7 @@ export default function CSSProEditor() {
                           />
                         </AccordionContent>
                       </AccordionItem>
-                      <AccordionItem className='border-b-2 border-secondary-bg ' value="item-7">
+                      <AccordionItem className='border-b-2 border-secondary-bg' value="item-7">
                         <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
                           <IconBorderSides stroke={2} size={21}/>
                           Border</AccordionTrigger>
@@ -1737,7 +2000,7 @@ export default function CSSProEditor() {
                           />
                         </AccordionContent>
                       </AccordionItem>
-                      <AccordionItem className='border-b-2 border-secondary-bg ' value="item-8">
+                      <AccordionItem className='border-b-2 border-secondary-bg' value="item-8">
                         <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
                           <IconCarouselVertical stroke={2} size={21}/>
                           Display
@@ -1753,51 +2016,51 @@ export default function CSSProEditor() {
                   </div>
                 ) : activeTab === 'code' ? (
                   <div className="space-y-4">
-                    <div className="bg-gray-900 p-4 rounded border border-gray-700">
-                      <div className="flex items-center justify-between mb-2">
+                    <div className="p-4 bg-gray-900 rounded border border-gray-700">
+                      <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium text-green-400">Generated CSS</span>
                         <button 
                           onClick={() => navigator.clipboard.writeText(generateCSS())}
-                          className="p-1 hover:bg-gray-700 rounded"
+                          className="p-1 rounded hover:bg-gray-700"
                           title="Copy CSS"
                         >
                           <Copy size={12} className="text-gray-400" />
                         </button>
                       </div>
-                      <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono overflow-x-auto">
+                      <pre className="overflow-x-auto font-mono text-xs text-gray-300 whitespace-pre-wrap">
                         {generateCSS()}
                       </pre>
                     </div>
                   </div>
                 ) : activeTab === 'html' ? (
                   <div className="space-y-4">
-                    <div className="bg-gray-900 p-4 rounded border border-gray-700">
-                      <div className="flex items-center justify-between mb-2">
+                    <div className="p-4 bg-gray-900 rounded border border-gray-700">
+                      <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium text-blue-400">HTML Structure</span>
                         <button 
                           onClick={() => navigator.clipboard.writeText(selectedElement?.outerHTML || '')}
-                          className="p-1 hover:bg-gray-700 rounded"
+                          className="p-1 rounded hover:bg-gray-700"
                           title="Copy HTML"
                         >
                           <Copy size={12} className="text-gray-400" />
                         </button>
                       </div>
-                      <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono overflow-x-auto">
+                      <pre className="overflow-x-auto font-mono text-xs text-gray-300 whitespace-pre-wrap">
                         {selectedElement?.outerHTML}
                       </pre>
                     </div>
                   </div>
                 ) : activeTab === 'chat' ? (
                   <div className="space-y-4">
-                    <div className="bg-gray-900 p-4 rounded border border-gray-700">
-                      <div className="flex items-center justify-between mb-2">
+                    <div className="p-4 bg-gray-900 rounded border border-gray-700">
+                      <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium text-purple-400">AI Chat</span>
-                        <span className="text-xs bg-red-500 text-white px-2 py-1 rounded">NEW</span>
+                        <span className="px-2 py-1 text-xs text-white bg-red-500 rounded">NEW</span>
                       </div>
-                      <div className="text-center text-gray-400 py-8">
-                        <div className="text-2xl mb-2">🤖</div>
+                      <div className="py-8 text-center text-gray-400">
+                        <div className="mb-2 text-2xl">🤖</div>
                         <p className="text-sm">AI Chat feature coming soon!</p>
-                        <p className="text-xs mt-2">Ask questions about this element's styling</p>
+                        <p className="mt-2 text-xs">Ask questions about this element's styling</p>
                       </div>
                     </div>
                   </div>
@@ -1805,21 +2068,22 @@ export default function CSSProEditor() {
               </div>
             )}
    
-        </ScrollArea>
-
+            </ScrollArea>
+          </>
+        )}
       </div>
       
-      {/* Instrucciones flotantes */}
-      {isInspectorMode && !selectedElement && (
+      {/* Instrucciones flotantes - Solo mostrar cuando el panel NO esté minimizado */}
+      {!isMinimized && isInspectorMode && !selectedElement && (
         <div className="fixed top-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-[9997] text-sm">
           🎯 Inspector Mode: Click any element to inspect its CSS
         </div>
       )}
       
-      {/* Indicador de Ctrl+Click cuando hay elemento seleccionado */}
-      {selectedElement && !isInspectorMode && (
+      {/* Indicador de Ctrl+Click cuando hay elemento seleccionado - Solo mostrar cuando el panel NO esté minimizado */}
+      {!isMinimized && selectedElement && !isInspectorMode && (
         <div className="fixed top-4 left-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-[9997] text-sm">
-          💡 Hold <kbd className="bg-green-700 px-1 rounded">Ctrl</kbd> + Click to select another element
+          💡 Hold <kbd className="px-1 bg-green-700 rounded">Ctrl</kbd> + Click to select another element
         </div>
       )}
       
