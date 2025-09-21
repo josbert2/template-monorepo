@@ -24,7 +24,7 @@ const PRESETS: string[] = [
 export default function BoxShadows({ value, onChange }: BoxShadowsProps) {
   return (
     <div className="space-y-3">
-      <div className="text-xs text-gray-400 uppercase tracking-wide">Box shadow</div>
+      <div className="text-xs text-gray-400 tracking-wide">Box shadow</div>
       <div className="grid grid-cols-3 gap-3">
         {PRESETS.map((css, idx) => {
           const isNone = css === 'none';
@@ -34,8 +34,8 @@ export default function BoxShadows({ value, onChange }: BoxShadowsProps) {
               key={idx}
               onClick={() => onChange(isNone ? 'none' : css)}
               className={[
-                'relative h-16 rounded border text-xs',
-                selected ? 'border-emerald-400' : 'border-gray-700',
+                'relative h-16 rounded border-2 bg-secondary-bg text-xs cursor-pointer hover:bg-pikend-bg/20',
+                selected ? 'border-pikend-bg/20' : 'border-transparent',
                 'bg-gray-800 hover:bg-gray-700'
               ].join(' ')}
               style={{
@@ -44,7 +44,7 @@ export default function BoxShadows({ value, onChange }: BoxShadowsProps) {
               }}
               aria-pressed={selected}
             >
-              <span className="absolute top-1 left-1 text-[10px] text-gray-300">
+              <span className="absolute top-1 left-1 text-[12px] text-gray-300">
                 {isNone ? '×' : `#${idx - 1}`}
               </span>
             </button>

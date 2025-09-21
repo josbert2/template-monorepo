@@ -1,4 +1,7 @@
 import React from 'react';
+import { Input } from '../ui/input';
+import CustomSelect from '../ui/custom-select';
+import  ColorPicker  from '../ColorPicker';
 
 export type BorderValues = {
   color: string;
@@ -13,45 +16,63 @@ export type BorderProps = {
 };
 
 export default function Border({ values, onChange }: BorderProps) {
+  const unitOptions = [
+    { value: 'px', label: 'px' },
+    { value: 'em', label: 'em' },
+    { value: 'rem', label: 'rem' },
+    { value: '%', label: '%' }
+  ];
+
+  const styleOptions = [
+    { value: 'none', label: 'none' },
+    { value: 'solid', label: 'solid' },
+    { value: 'dashed', label: 'dashed' },
+    { value: 'dotted', label: 'dotted' },
+    { value: 'double', label: 'double' },
+    { value: 'groove', label: 'groove' },
+    { value: 'ridge', label: 'ridge' },
+    { value: 'inset', label: 'inset' },
+    { value: 'outset', label: 'outset' }
+  ];
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <input
-          type="color"
+      <div className="space-y-2">
+        <label className="text-xs text-gray-400 uppercase tracking-wide">Color</label>
+        <ColorPicker
           value={values.color}
-          onChange={(e) => onChange('color', e.target.value)}
-          className="h-8 w-10 bg-gray-700 border border-gray-600 rounded"
+          onChange={(color) => onChange('color', color)}
+          className="w-full"
         />
-        <span className="text-sm text-gray-300">{values.color}</span>
       </div>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="number"
-          value={values.width}
-          min={0}
-          onChange={(e) => onChange('width', Number(e.target.value) || 0)}
-          className="w-20 bg-gray-700 text-white px-2 py-2 rounded-l text-sm border border-gray-600 border-r-0 focus:border-blue-500 focus:outline-none"
-        />
-        <select
-          value={values.unit}
-          onChange={(e) => onChange('unit', e.target.value as BorderValues['unit'])}
-          className="bg-gray-700 text-white px-2 py-2 rounded-r text-sm border border-gray-600 border-l-0 focus:border-blue-500 focus:outline-none"
-        >
-          <option value="px">px</option>
-          <option value="em">em</option>
-          <option value="rem">rem</option>
-          <option value="%">%</option>
-        </select>
-        <select
+      <div className="space-y-2">
+        <label className="text-xs text-gray-400 uppercase tracking-wide">Width</label>
+        <div className="flex items-center gap-2">
+          <Input
+            type="number"
+            value={values.width.toString()}
+            min={0}
+            onChange={(e) => onChange('width', Number(e.target.value) || 0)}
+            className="flex-1"
+          />
+          <CustomSelect
+            value={values.unit}
+            onValueChange={(value) => onChange('unit', value as BorderValues['unit'])}
+            options={unitOptions}
+            className="w-20"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs text-gray-400 uppercase tracking-wide">Style</label>
+        <CustomSelect
           value={values.style}
-          onChange={(e) => onChange('style', e.target.value as BorderValues['style'])}
-          className="ml-3 bg-gray-700 text-white px-2 py-2 rounded text-sm border border-gray-600 focus:border-blue-500 focus:outline-none"
-        >
-          {['none','solid','dashed','dotted','double','groove','ridge','inset','outset'].map(s => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
+          onValueChange={(value) => onChange('style', value as BorderValues['style'])}
+          options={styleOptions}
+          className="w-full"
+        />
       </div>
     </div>
   );

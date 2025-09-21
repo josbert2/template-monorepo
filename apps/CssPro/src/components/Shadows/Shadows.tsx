@@ -1,5 +1,10 @@
 import React from 'react';
-import Range from '../ui/Range';
+import { Button } from '../ui/button';
+import { SliderWithInput } from '../ui/slider-with-input';
+import ColorPicker from '../ColorPicker'; 
+import { IconPlus, IconTrash } from '@tabler/icons-react';
+
+
 
 export type ShadowLayer = {
   offsetX: number; // px
@@ -46,21 +51,84 @@ export default function Shadows({ values, onChange, onApplyPreset }: ShadowsProp
 
   return (
     <div className="space-y-4">
-      <button onClick={addLayer} className="px-2 py-1 text-xs bg-gray-700 border border-gray-600 rounded hover:bg-gray-600">+ Add text shadow</button>
+      <div className='flex justify-end'>
+        <Button 
+          onClick={addLayer} 
+          className='text-gray-400'
+          variant="pikend" 
+          size="xs"
+        >
+          <IconPlus stroke={2} size={21}/>
+           Add text shadow
+        </Button>
+      </div>
 
       <div className="space-y-3">
         {values.layers.map((layer, idx) => (
-          <div key={idx} className="p-2 border border-gray-700 rounded space-y-2">
+          <div key={idx} className="p-4 py-4 bg-secondary-bg rounded-lg space-y-2 relative">
             <div className="grid grid-cols-3 gap-2">
-              <Range label="Offset X" min={-50} max={50} value={layer.offsetX} suffix="px" onChange={(v) => updateLayer(idx, { offsetX: v })} />
-              <Range label="Offset Y" min={-50} max={50} value={layer.offsetY} suffix="px" onChange={(v) => updateLayer(idx, { offsetY: v })} />
-              <Range label="Blur" min={0} max={100} value={layer.blur} suffix="px" onChange={(v) => updateLayer(idx, { blur: v })} />
+              <SliderWithInput
+                value={[layer.offsetX]}
+                onValueChange={(v) => updateLayer(idx, { offsetX: v[0] })}
+                min={-50}
+                max={50}
+                className="w-full"
+                inputClassName="h-7 w-12"
+                showTooltip={true}
+                aria-label="Offset X"
+                label="Offset X"
+                suffix="px"
+              />
+              <SliderWithInput
+                value={[layer.offsetY]}
+                onValueChange={(v) => updateLayer(idx, { offsetY: v[0] })}
+                min={-50}
+                max={50}
+                className="w-full"
+                inputClassName="h-7 w-12"
+                showTooltip={true}
+                aria-label="Offset Y"
+                label="Offset Y"
+                suffix="px"
+              />
+              <SliderWithInput
+                value={[layer.blur]}
+                onValueChange={(v) => updateLayer(idx, { blur: v[0] })}
+                min={0}
+                max={100}
+                className="w-full"
+                inputClassName="h-7 w-12"
+                showTooltip={true}
+                aria-label="Blur"
+                label="Blur"
+                suffix="px"
+              />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pt-2">
               <label className="text-xs text-gray-400">Color</label>
-              <input type="color" value={toHexIfPossible(layer.color)} onChange={(e) => updateLayer(idx, { color: e.target.value })} className="h-7 w-10 bg-gray-700 border border-gray-600 rounded" />
-              <input type="text" value={layer.color} onChange={(e) => updateLayer(idx, { color: e.target.value })} className="flex-1 bg-gray-700 text-white px-2 py-1 text-xs rounded border border-gray-600" />
-              <button onClick={() => removeLayer(idx)} className="px-2 py-1 text-xs bg-gray-700 border border-gray-600 rounded hover:bg-gray-600">–</button>
+              <ColorPicker
+                value={layer.color}
+                onChange={(color) => updateLayer(idx, { color })}
+                className="flex-1"
+              />
+              <input 
+                type="text"
+                value={layer.color}
+                onChange={(e) => updateLayer(idx, { color: toHexIfPossible(e.target.value) })}
+                className="w-16 h-7 px-2 text-xs rounded-md border border-input bg-background text-foreground"
+                style={{'backgroundColor': layer.color, }}
+                placeholder="Color"
+              />
+              <div className="absolute  top-0 right-0">
+                <Button 
+                  onClick={() => removeLayer(idx)} 
+                  variant="pikend" 
+                  size="xs"
+                  className="text-gray-400 bg-transparent"
+                >
+                 <IconTrash stroke={2} size={21}/>
+                </Button>
+              </div>
             </div>
           </div>
         ))}
@@ -70,9 +138,15 @@ export default function Shadows({ values, onChange, onApplyPreset }: ShadowsProp
         <div className="text-xs text-gray-400 uppercase tracking-wide">Presets</div>
         <div className="grid grid-cols-3 gap-2">
           {PRESETS.map((p) => (
-            <button key={p.name} onClick={() => applyPreset(p.layers)} className="p-3 bg-gray-800 border border-gray-700 rounded hover:bg-gray-700 text-xs text-gray-200">
+            <Button 
+              key={p.name} 
+              onClick={() => applyPreset(p.layers)} 
+              variant="pikend"
+              size="sm"
+              className="text-gray-200"
+            >
               {p.name}
-            </button>
+            </Button>
           ))}
         </div>
       </div>

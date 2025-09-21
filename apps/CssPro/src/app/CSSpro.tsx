@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronDown, ChevronRight, Eye, Copy, X, Target, Code, Palette, Settings, Trash2, Plus as PlusIcon, Minus as MinusIcon } from 'lucide-react';
+
+import { IconBackground, IconBorderSides, IconCarouselVertical, IconTiltShift, IconBoxPadding, IconWashDryShade,IconStackFront, IconSquareRounded } from '@tabler/icons-react';
+
+
+
 import styles from "../components/Csspro.module.css";
 import  "../components/Csspro.css";
 import {  
@@ -17,6 +22,7 @@ import {
   SelectValue,
 } from "../components/ui/select"
 import ReusableNumberField from '../components/ui/input-plus-minus';
+import { ScrollArea, ScrollBar } from '../components/ui/scroll-area';
 
 import Typography from '../components/Typography/Typography';
 import Background, { BackgroundLayer } from '../components/Background/Background';
@@ -972,814 +978,835 @@ export default function CSSProEditor() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
-          {!selectedElement ? (
-            <div className="p-4 text-center text-gray-400">
-              <Target size={48} className="mx-auto mb-4 opacity-50" />
-              <p className="text-sm mb-2">Click the inspector button and select any element to view its CSS properties.</p>
-              <p className="text-xs">Inspector mode: {isInspectorMode ? 'ON' : 'OFF'}</p>
-            </div>
-          ) : (
-            <div className="p-4">
-              {activeTab === 'design' ? (
-                <div className="space-y-4">
-                  {/* Media Queries Selector */}
-                  <div className="space-y-3  bg-[#ff80bf0f] rounded-lg">
-                    <div className="flex items-center gap-2 text-gray-400 px-3 pt-3">
-                        <svg  xmlns="http://www.w3.org/2000/svg"  width="20"  height="20"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  className="icon icon-tabler icons-tabler-outline icon-tabler-devices-pc"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 5h6v14h-6z" /><path d="M12 9h10v7h-10z" /><path d="M14 19h6" /><path d="M17 16v3" /><path d="M6 13v.01" /><path d="M6 16v.01" /></svg>
-                      <span className="text-xs">Media:</span>
-                    </div>
-                    <select 
-                      value={selectedMedia}
-                      onChange={(e) => setSelectedMedia(e.target.value)}
-                      className="w-full  text-pink-400 px-3 py-2 rounded text-sm border-none focus:border-none focus:outline-none"
-                    >
-                      <option value="Auto - screen and (min-width: 1024px)">Auto - screen and (min-width: 1024px)</option>
-                      <option value="Mobile - screen and (max-width: 768px)">Mobile - screen and (max-width: 768px)</option>
-                      <option value="Tablet - screen and (max-width: 1024px)">Tablet - screen and (max-width: 1024px)</option>
-                      <option value="Desktop - screen and (min-width: 1200px)">Desktop - screen and (min-width: 1200px)</option>
-                    </select>
-                  </div>
-
-                  {/* State/Pseudo Selector */}
-                  <div className="space-y-3 bg-[#77f0a00d] rounded-lg">
-                    <div className="flex items-center gap-2 text-gray-400 px-3 pt-3">
-                      <div className="w-4 h-4 rounded-full border border-gray-500 flex items-center justify-center">
-                        <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+        <ScrollArea className="flex-1 h-[200px] w-full ">
+       
+            {!selectedElement ? (
+              <div className="p-4 text-center text-gray-400">
+                <Target size={48} className="mx-auto mb-4 opacity-50" />
+                <p className="text-sm mb-2">Click the inspector button and select any element to view its CSS properties.</p>
+                <p className="text-xs">Inspector mode: {isInspectorMode ? 'ON' : 'OFF'}</p>
+              </div>
+            ) : (
+              <div className="p-4">
+                {activeTab === 'design' ? (
+                  <div className="space-y-4">
+                    {/* Media Queries Selector */}
+                    <div className="space-y-3  bg-[#ff80bf0f] rounded-lg">
+                      <div className="flex items-center gap-2 text-gray-400 px-3 pt-3">
+                          <svg  xmlns="http://www.w3.org/2000/svg"  width="20"  height="20"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  className="icon icon-tabler icons-tabler-outline icon-tabler-devices-pc"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 5h6v14h-6z" /><path d="M12 9h10v7h-10z" /><path d="M14 19h6" /><path d="M17 16v3" /><path d="M6 13v.01" /><path d="M6 16v.01" /></svg>
+                        <span className="text-xs">Media:</span>
                       </div>
-                      <span className="text-xs">State or pseudo</span>
-                    </div>
-                    <select 
-                      value={selectedState}
-                      onChange={(e) => setSelectedState(e.target.value)}
-                      className="w-full bg-transparent text-green-400 px-3 py-2 rounded text-sm border-none focus:border-blue-500 focus:outline-none"
-                    >
-                      <option value="None">None</option>
-                      <option value="hover">:hover</option>
-                      <option value="active">:active</option>
-                      <option value="focus">:focus</option>
-                      <option value="visited">:visited</option>
-                      <option value="first-child">:first-child</option>
-                      <option value="last-child">:last-child</option>
-                      <option value="before">::before</option>
-                      <option value="after">::after</option>
-                    </select>
-                  </div>
-
-                  {/* Position and Transform Controls */}
-                  <div className="space-y-3 bg-secondary-bg p-3 rounded-lg ">
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      {/* Position X */}
-                      <div className="space-y-1 flex items-center">
-                        <div className="flex items-center gap-1">
-                          <span className="text-gray-400">X</span>
-                          <span className="text-gray-500">{selectedElement ? Math.round(selectedElement.getBoundingClientRect().left) : 0}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Position Y */}
-                      <div className="space-y-1 flex items-center">
-                        <div className="flex items-center gap-1">
-                          <span className="text-gray-400">Y</span>
-                          <span className="text-gray-500">{selectedElement ? Math.round(selectedElement.getBoundingClientRect().top) : 0}</span>
-                        </div>
-                      </div>
-
-                      {/* Rotation */}
-                      <div className="space-y-1 flex items-center">
-                        <label className="text-gray-400 mr-2">
-                          <svg  xmlns="http://www.w3.org/2000/svg"  width="15"  height="15"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  className="icon icon-tabler icons-tabler-outline icon-tabler-rotate"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.95 11a8 8 0 1 0 -.5 4m.5 5v-5h-5" /></svg>
-                        </label>
-                        <div className="relative flex border-2 border-secondary-bg rounded-lg">
-                          <input
-                            type="text"
-                            value={editableValues.rotate.value}
-                            onChange={(e) => {
-                              const newValue = e.target.value;
-                              setEditableValues(prev => ({ 
-                                ...prev, 
-                                rotate: { ...prev.rotate, value: newValue }
-                              }));
-                              if (selectedElement) {
-                                selectedElement.style.setProperty('transform', `rotate(${newValue}${editableValues.rotate.unit})`, 'important');
-                              }
-                            }}
-                            className="flex-1 w-full bg-transparent text-white text-xs px-2 py-1 outline-none"
-                            placeholder="0"
-                          />
-                          <Select 
-                            value={editableValues.rotate.unit} 
-                            onValueChange={(value) => {
-                              setEditableValues(prev => ({ 
-                                ...prev, 
-                                rotate: { ...prev.rotate, unit: value }
-                              }));
-                              if (selectedElement) {
-                                selectedElement.style.setProperty('transform', `rotate(${editableValues.rotate.value}${value})`, 'important');
-                              }
-                            }}
-                          >
-                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none  focus:border-none focus:outline-none">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-primary-bg border-secondary-bg">
-                              <SelectItem value="deg">deg</SelectItem>
-                              <SelectItem value="rad">rad</SelectItem>
-                              <SelectItem value="grad">grad</SelectItem>
-                              <SelectItem value="turn">turn</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                      <select 
+                        value={selectedMedia}
+                        onChange={(e) => setSelectedMedia(e.target.value)}
+                        className="w-full  text-pink-400 px-3 py-2 rounded text-sm border-none focus:border-none focus:outline-none"
+                      >
+                        <option value="Auto - screen and (min-width: 1024px)">Auto - screen and (min-width: 1024px)</option>
+                        <option value="Mobile - screen and (max-width: 768px)">Mobile - screen and (max-width: 768px)</option>
+                        <option value="Tablet - screen and (max-width: 1024px)">Tablet - screen and (max-width: 1024px)</option>
+                        <option value="Desktop - screen and (min-width: 1200px)">Desktop - screen and (min-width: 1200px)</option>
+                      </select>
                     </div>
 
-                    {/* Width, Height, Border-radius */}
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      {/* Width */}
-                      <div className="space-y-1">
-                        <label className="text-gray-400">W</label>
-                        <div className="relative flex border-2 border-secondary-bg rounded-lg">
-                          <input
-                            type="text"
-                            value={editableValues.width.value}
-                            onChange={(e) => {
-                              const newValue = e.target.value;
-                              setEditableValues(prev => ({ 
-                                ...prev, 
-                                width: { ...prev.width, value: newValue }
-                              }));
-                              if (selectedElement) {
-                                const fullValue = newValue === 'auto' ? 'auto' : `${newValue}${editableValues.width.unit}`;
-                                selectedElement.style.width = fullValue;
-                              }
-                            }}
-                            className="flex-1  text-white px-2 py-1  text-xs bg-none border border-none  border-r-0 focus:border-green-500 focus:outline-none w-full"
-                            placeholder="auto"
-                          />
-                          <Select 
-                            value={editableValues.width.unit}
-                            
-                            onValueChange={(newUnit) => {
-                              setEditableValues(prev => ({ 
-                                ...prev, 
-                                width: { ...prev.width, unit: newUnit }
-                              }));
-                              if (selectedElement && editableValues.width.value !== 'auto') {
-                                selectedElement.style.width = `${editableValues.width.value}${newUnit}`;
-                              }
-                            }}
-                          >
-                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none  focus:border-green-500 focus:outline-none">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-primary-bg border-secondary-bg ">
-                              <SelectItem value="px" className="text-white hover:bg-gray-700">px</SelectItem>
-                              <SelectItem value="%" className="text-white hover:bg-gray-700">%</SelectItem>
-                              <SelectItem value="em" className="text-white hover:bg-gray-700">em</SelectItem>
-                              <SelectItem value="rem" className="text-white hover:bg-gray-700">rem</SelectItem>
-                              <SelectItem value="vw" className="text-white hover:bg-gray-700">vw</SelectItem>
-                              <SelectItem value="vh" className="text-white hover:bg-gray-700">vh</SelectItem>
-                              <SelectItem value="auto" className="text-white hover:bg-gray-700">auto</SelectItem>
-                            </SelectContent>
-                          </Select>
+                    {/* State/Pseudo Selector */}
+                    <div className="space-y-3 bg-[#77f0a00d] rounded-lg">
+                      <div className="flex items-center gap-2 text-gray-400 px-3 pt-3">
+                        <div className="w-4 h-4 rounded-full border border-gray-500 flex items-center justify-center">
+                          <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
                         </div>
+                        <span className="text-xs">State or pseudo</span>
                       </div>
-
-                      {/* Height */}
-                      <div className="space-y-1">
-                        <label className="text-gray-400">H</label>
-                        <div className="relative flex border-2 border-secondary-bg rounded-lg">
-                          <input
-                            type="text"
-                            value={editableValues.height.value}
-                            onChange={(e) => {
-                              const newValue = e.target.value;
-                              setEditableValues(prev => ({ 
-                                ...prev, 
-                                height: { ...prev.height, value: newValue }
-                              }));
-                              if (selectedElement) {
-                                const fullValue = newValue === 'auto' ? 'auto' : `${newValue}${editableValues.height.unit}`;
-                                selectedElement.style.height = fullValue;
-                              }
-                            }}
-                            className="flex-1 text-white px-2 py-1 text-xs bg-none border border-none border-r-0 focus:border-green-500 focus:outline-none w-full"
-                            placeholder="auto"
-                          />
-                          <Select 
-                            value={editableValues.height.unit}
-                            onValueChange={(newUnit) => {
-                              setEditableValues(prev => ({ 
-                                ...prev, 
-                                height: { ...prev.height, unit: newUnit }
-                              }));
-                              if (selectedElement && editableValues.height.value !== 'auto') {
-                                selectedElement.style.height = `${editableValues.height.value}${newUnit}`;
-                              }
-                            }}
-                          >
-                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-primary-bg border-secondary-bg">
-                              <SelectItem value="px" className="text-white hover:bg-gray-700">px</SelectItem>
-                              <SelectItem value="%" className="text-white hover:bg-gray-700">%</SelectItem>
-                              <SelectItem value="em" className="text-white hover:bg-gray-700">em</SelectItem>
-                              <SelectItem value="rem" className="text-white hover:bg-gray-700">rem</SelectItem>
-                              <SelectItem value="vw" className="text-white hover:bg-gray-700">vw</SelectItem>
-                              <SelectItem value="vh" className="text-white hover:bg-gray-700">vh</SelectItem>
-                              <SelectItem value="auto" className="text-white hover:bg-gray-700">auto</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      {/* Border Radius */}
-                      <div className="space-y-1">
-                        <label className="text-gray-400">R</label>
-                        <div className="relative flex border-2 border-secondary-bg rounded-lg">
-                          <input
-                            type="text"
-                            value={editableValues.borderRadius.value}
-                            onChange={(e) => {
-                              const newValue = e.target.value;
-                              setEditableValues(prev => ({ 
-                                ...prev, 
-                                borderRadius: { ...prev.borderRadius, value: newValue }
-                              }));
-                              if (selectedElement) {
-                                selectedElement.style.borderRadius = `${newValue}${editableValues.borderRadius.unit}`;
-                              }
-                            }}
-                            className="flex-1 text-white px-2 py-1 text-xs bg-none border border-none border-r-0 focus:border-green-500 focus:outline-none w-full"
-                            placeholder="0"
-                          />
-                          <Select 
-                            value={editableValues.borderRadius.unit}
-                            onValueChange={(newUnit) => {
-                              setEditableValues(prev => ({ 
-                                ...prev, 
-                                borderRadius: { ...prev.borderRadius, unit: newUnit }
-                              }));
-                              if (selectedElement) {
-                                selectedElement.style.borderRadius = `${editableValues.borderRadius.value}${newUnit}`;
-                              }
-                            }}
-                          >
-                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-primary-bg border-secondary-bg">
-                              <SelectItem value="px" className="text-white hover:bg-gray-700">px</SelectItem>
-                              <SelectItem value="%" className="text-white hover:bg-gray-700">%</SelectItem>
-                              <SelectItem value="em" className="text-white hover:bg-gray-700">em</SelectItem>
-                              <SelectItem value="rem" className="text-white hover:bg-gray-700">rem</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
+                      <select 
+                        value={selectedState}
+                        onChange={(e) => setSelectedState(e.target.value)}
+                        className="w-full bg-transparent text-green-400 px-3 py-2 rounded text-sm border-none focus:border-blue-500 focus:outline-none"
+                      >
+                        <option value="None">None</option>
+                        <option value="hover">:hover</option>
+                        <option value="active">:active</option>
+                        <option value="focus">:focus</option>
+                        <option value="visited">:visited</option>
+                        <option value="first-child">:first-child</option>
+                        <option value="last-child">:last-child</option>
+                        <option value="before">::before</option>
+                        <option value="after">::after</option>
+                      </select>
                     </div>
-                  </div>
 
-                  {/* CSS Pro Style Spacing Visualizer */}
-                  <div className={`${styles.cssProVisualSpacingBox} ${styles.cssProVisualAccordionContent} border border-secondary-bg css-pro-visual-spacing-box`}>
-                    {/* Margin container */}
-                    <div className="css-pro-visual-spacing-placeholder horizontal top"></div>
-                    <div className="css-pro-visual-spacing-placeholder horizontal bottom"></div>
-                    <div className='css-pro-visual-spacing-placeholder vertical left'></div>
-                    <div className='css-pro-visual-spacing-placeholder vertical right'></div>
-                    <div className="bg-secondary-bg p-6 rounded-lg ">
-                      
-                      {/* Margin Top */}
-                      <label 
-                        data-css-pro-edit-rule="margin-top" 
-                        onMouseDown={(e) => handleSpacingMouseDown('marginTop', e)} 
-                        data-css-pro-input 
-                        className="absolute top-2 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg"
-                      >
-                        <span 
-                          className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
-                          title="Click and drag to change margin-top"
-                        >
-                          ⇕
-                        </span>
-                        <div className="flex items-center gap-1 h-full">
-                          {/* Input con botones +/- personalizado */}
-                          <div className="flex items-center  rounded  h-full w-full">
-                            <button
-                              type="button"
-                              onClick={() => handleSpacingValueChange('marginTop', Math.max(-999, (spacingValues.marginTop?.value || 0) - 1))}
-                              className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white transition-colors cursor-pointer hover:bg-secondary-bg"
-                            >
-                              <MinusIcon size={12} />
-                            </button>
-                            <input
-                              type="text"
-                              value={spacingValues.marginTop?.value || 0}
-                              onChange={(e) => handleSpacingValueChange('marginTop', parseFloat(e.target.value) || 0)}
-                              className="bg-transparent text-white text-xs w-full text-center border-none outline-none w-full"
-                              
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleSpacingValueChange('marginTop', Math.min(999, (spacingValues.marginTop?.value || 0) + 1))}
-                              className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white transition-colors cursor-pointer hover:bg-secondary-bg"
-                            >
-                              <PlusIcon size={12} />
-                            </button>
-                          </div>
-                          <Select 
-                            value={spacingValues.marginTop?.unit || 'px'} 
-                            onValueChange={(value) => handleSpacingUnitChange('marginTop', value)}
-                          >
-                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-primary-bg border-secondary-bg">
-                              <SelectItem value="auto">auto</SelectItem>
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="%">%</SelectItem>
-                              <SelectItem value="em">em</SelectItem>
-                              <SelectItem value="rem">rem</SelectItem>
-                              <SelectItem value="vw">vw</SelectItem>
-                              <SelectItem value="vh">vh</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </label>
-
-                      {/* Margin Bottom */}
-                      <label 
-                        data-css-pro-edit-rule="margin-bottom" 
-                        onMouseDown={(e) => handleSpacingMouseDown('marginBottom', e)} 
-                        data-css-pro-input 
-                        className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg"
-                      >
-                        <span 
-                          className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
-                          title="Click and drag to change margin-bottom"
-                        >
-                          ⇕
-                        </span>
-                        <div className="flex items-center gap-1  h-full">
-                          {/* Input con botones +/- personalizado */}
-                          <div className="flex items-center  rounded  h-full w-full">
-                            <button
-                              type="button"
-                              onClick={() => handleSpacingValueChange('marginBottom', Math.max(-999, (spacingValues.marginBottom?.value || 0) - 1))}
-                              className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
-                            >
-                              <MinusIcon size={12} />
-                            </button>
-                            <input
-                              type="text"
-                              value={spacingValues.marginBottom?.value || 0}
-                              onChange={(e) => handleSpacingValueChange('marginBottom', parseFloat(e.target.value) || 0)}
-                              className="bg-transparent text-white text-xs w-full text-center border-none outline-none"
-                             
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleSpacingValueChange('marginBottom', Math.min(999, (spacingValues.marginBottom?.value || 0) + 1))}
-                              className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
-                            >
-                              <PlusIcon size={12} />
-                            </button>
-                          </div>
-                          <Select 
-                            value={spacingValues.marginBottom?.unit || 'px'} 
-                            onValueChange={(value) => handleSpacingUnitChange('marginBottom', value)}
-                          >
-                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-primary-bg border-secondary-bg">
-                              <SelectItem value="auto">auto</SelectItem>
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="%">%</SelectItem>
-                              <SelectItem value="em">em</SelectItem>
-                              <SelectItem value="rem">rem</SelectItem>
-                              <SelectItem value="vh">vh</SelectItem>
-                              <SelectItem value="vw">vw</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </label>
-
-                      {/* Margin Left */}
-                      <label 
-                        data-css-pro-edit-rule="margin-left" 
-                        onMouseDown={(e) => handleSpacingMouseDown('marginLeft', e)} 
-                        data-css-pro-input 
-                        className="absolute left-[-48px] top-[42%] transform -translate-y-[-6%] -rotate-90 origin-center border border-secondary-bg h-[44px] w-[45.035%]"
-                      >
-                        <div className="flex items-center h-full">
-                          <span 
-                            className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
-                            title="Click and drag to change margin-left"
-                          >
-                            ⇔
-                          </span>
-                          <div className="flex items-center gap-1 h-full">
-                            {/* Input con botones +/- personalizado */}
-                            <div className="flex items-center rounded h-full w-full">
-                              <button
-                                type="button"
-                                onClick={() => handleSpacingValueChange('marginLeft', Math.max(-999, (spacingValues.marginLeft?.value || 0) - 1))}
-                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
-                              >
-                                <MinusIcon size={12} />
-                              </button>
-                              <input
-                                type="text"
-                                value={spacingValues.marginLeft?.value || 0}
-                                onChange={(e) => handleSpacingValueChange('marginLeft', parseFloat(e.target.value) || 0)}
-                                className="bg-transparent text-white text-xs w-full text-center border-none outline-none"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => handleSpacingValueChange('marginLeft', Math.min(999, (spacingValues.marginLeft?.value || 0) + 1))}
-                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
-                              >
-                                <PlusIcon size={12} />
-                              </button>
-                            </div>
-                            <Select 
-                              value={spacingValues.marginLeft?.unit || 'px'} 
-                              onValueChange={(value) => handleSpacingUnitChange('marginLeft', value)}
-                            >
-                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-primary-bg border-secondary-bg">
-                                <SelectItem value="auto">auto</SelectItem>
-                                <SelectItem value="px">px</SelectItem>
-                                <SelectItem value="%">%</SelectItem>
-                                <SelectItem value="em">em</SelectItem>
-                                <SelectItem value="rem">rem</SelectItem>
-                                <SelectItem value="vw">vw</SelectItem>
-                                <SelectItem value="vh">vh</SelectItem>
-                              </SelectContent>
-                            </Select>
+                    {/* Position and Transform Controls */}
+                    <div className="space-y-3 bg-secondary-bg p-3 rounded-lg ">
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        {/* Position X */}
+                        <div className="space-y-1 flex items-center">
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-400">X</span>
+                            <span className="text-gray-500">{selectedElement ? Math.round(selectedElement.getBoundingClientRect().left) : 0}</span>
                           </div>
                         </div>
-                      </label>
-
-                      {/* Margin Right */}
-                      <label 
-                        data-css-pro-edit-rule="margin-right" 
-                        onMouseDown={(e) => handleSpacingMouseDown('marginRight', e)} 
-                        data-css-pro-input 
-                        className="absolute right-1 top-1/2 transform -translate-[101px] rotate-90 origin-center border border-secondary-bg h-[44px] w-[45.035%] top-[213px] right-[-148px]"
-                      >
-                        <div className="flex items-center">
-                          <span 
-                            className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
-                            title="Click and drag to change margin-right"
-                          >
-                            ⇔
-                          </span>
-                          <div className="flex items-center gap-1 h-full">
-                            {/* Input con botones +/- personalizado */}
-                            <div className="flex items-center rounded h-full w-full">
-                              <button
-                                type="button"
-                                onClick={() => handleSpacingValueChange('marginRight', Math.max(-999, (spacingValues.marginRight?.value || 0) - 1))}
-                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
-                              >
-                                <MinusIcon size={12} />
-                              </button>
-                              <input
-                                type="text"
-                                value={spacingValues.marginRight?.value || 0}
-                                onChange={(e) => handleSpacingValueChange('marginRight', parseFloat(e.target.value) || 0)}
-                                className="bg-transparent text-white text-xs w-full text-center border-none outline-none"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => handleSpacingValueChange('marginRight', Math.min(999, (spacingValues.marginRight?.value || 0) + 1))}
-                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
-                              >
-                                <PlusIcon size={12} />
-                              </button>
-                            </div>
-                            <Select 
-                              value={spacingValues.marginRight?.unit || 'px'} 
-                              onValueChange={(value) => handleSpacingUnitChange('marginRight', value)}
-                            >
-                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-primary-bg border-secondary-bg">
-                                <SelectItem value="auto">auto</SelectItem>
-                                <SelectItem value="px">px</SelectItem>
-                                <SelectItem value="%">%</SelectItem>
-                                <SelectItem value="em">em</SelectItem>
-                                <SelectItem value="rem">rem</SelectItem>
-                                <SelectItem value="vw">vw</SelectItem>
-                                <SelectItem value="vh">vh</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      </label>
-
-                      {/* Padding container */}
-                      <div className="bg-secondary-bg p-10 m-8 rounded relative">
                         
-                        {/* Padding Top */}
-                        <div className="absolute top-2 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg rounded-lg">
-                          <span 
-                            className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
-                            onMouseDown={(e) => handleSpacingMouseDown('paddingTop', e)}
-                            title="Click and drag to change padding-top"
-                          >
-                            ⇕
-                          </span>
-                          <input
-                            type="text"
-                            min="0"
-                            value={spacingValues.paddingTop?.value || 0}
-                            onChange={(e) => handleSpacingValueChange('paddingTop', parseFloat(e.target.value) || 0)}
-                            className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
-                            style={{ width: `${Math.max(2, String(spacingValues.paddingTop?.value || 0).length)}ch` }}
-                          />
-                          <Select 
-                            value={spacingValues.paddingTop?.unit || 'px'} 
-                            onValueChange={(value) => handleSpacingUnitChange('paddingTop', value)}
-                          >
-                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-primary-bg border-secondary-bg">
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="%">%</SelectItem>
-                              <SelectItem value="em">em</SelectItem>
-                              <SelectItem value="rem">rem</SelectItem>
-                              <SelectItem value="vw">vw</SelectItem>
-                              <SelectItem value="vh">vh</SelectItem>
-                            </SelectContent>
-                          </Select>
+                        {/* Position Y */}
+                        <div className="space-y-1 flex items-center">
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-400">Y</span>
+                            <span className="text-gray-500">{selectedElement ? Math.round(selectedElement.getBoundingClientRect().top) : 0}</span>
+                          </div>
                         </div>
 
-                        {/* Padding Bottom */}
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg rounded-lg">
-                          <span 
-                            className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
-                            onMouseDown={(e) => handleSpacingMouseDown('paddingBottom', e)}
-                            title="Click and drag to change padding-bottom"
-                          >
-                            ⇕
-                          </span>
-                          <input
-                            type="text"
-                            min="0"
-                            value={spacingValues.paddingBottom?.value || 0}
-                            onChange={(e) => handleSpacingValueChange('paddingBottom', parseFloat(e.target.value) || 0)}
-                            className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
-                            style={{ width: `${Math.max(2, String(spacingValues.paddingBottom?.value || 0).length)}ch` }}
-                          />
-                          <Select 
-                            value={spacingValues.paddingBottom?.unit || 'px'} 
-                            onValueChange={(value) => handleSpacingUnitChange('paddingBottom', value)}
-                          >
-                            <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-primary-bg border-secondary-bg">
-                              <SelectItem value="px">px</SelectItem>
-                              <SelectItem value="%">%</SelectItem>
-                              <SelectItem value="em">em</SelectItem>
-                              <SelectItem value="rem">rem</SelectItem>
-                              <SelectItem value="vw">vw</SelectItem>
-                              <SelectItem value="vh">vh</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {/* Padding Left */}
-                        <div className="absolute left-[-19px] top-1/2 transform -translate-y-1/2 -rotate-90 origin-center border border-secondary-bg rounded-lg">
-                          <div className="flex items-center">
-                            <span 
-                              className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
-                              onMouseDown={(e) => handleSpacingMouseDown('paddingLeft', e)}
-                              title="Click and drag to change padding-left"
-                            >
-                              ⇔
-                            </span>
+                        {/* Rotation */}
+                        <div className="space-y-1 flex items-center">
+                          <label className="text-gray-400 mr-2">
+                            <svg  xmlns="http://www.w3.org/2000/svg"  width="15"  height="15"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  className="icon icon-tabler icons-tabler-outline icon-tabler-rotate"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.95 11a8 8 0 1 0 -.5 4m.5 5v-5h-5" /></svg>
+                          </label>
+                          <div className="relative flex border-2 border-secondary-bg rounded-lg">
                             <input
                               type="text"
-                              min="0"
-                              value={spacingValues.paddingLeft?.value || 0}
-                              onChange={(e) => handleSpacingValueChange('paddingLeft', parseFloat(e.target.value) || 0)}
-                              className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
-                              style={{ width: `${Math.max(2, String(spacingValues.paddingLeft?.value || 0).length)}ch` }}
+                              value={editableValues.rotate.value}
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                setEditableValues(prev => ({ 
+                                  ...prev, 
+                                  rotate: { ...prev.rotate, value: newValue }
+                                }));
+                                if (selectedElement) {
+                                  selectedElement.style.setProperty('transform', `rotate(${newValue}${editableValues.rotate.unit})`, 'important');
+                                }
+                              }}
+                              className="flex-1 w-full bg-transparent text-white text-xs px-2 py-1 outline-none"
+                              placeholder="0"
                             />
                             <Select 
-                              value={spacingValues.paddingLeft?.unit || 'px'} 
-                              onValueChange={(value) => handleSpacingUnitChange('paddingLeft', value)}
+                              value={editableValues.rotate.unit} 
+                              onValueChange={(value) => {
+                                setEditableValues(prev => ({ 
+                                  ...prev, 
+                                  rotate: { ...prev.rotate, unit: value }
+                                }));
+                                if (selectedElement) {
+                                  selectedElement.style.setProperty('transform', `rotate(${editableValues.rotate.value}${value})`, 'important');
+                                }
+                              }}
                             >
-                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none  focus:border-none focus:outline-none">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-primary-bg border-secondary-bg">
-                                <SelectItem value="px">px</SelectItem>
-                                <SelectItem value="%">%</SelectItem>
-                                <SelectItem value="em">em</SelectItem>
-                                <SelectItem value="rem">rem</SelectItem>
-                                <SelectItem value="vw">vw</SelectItem>
-                                <SelectItem value="vh">vh</SelectItem>
+                                <SelectItem value="deg">deg</SelectItem>
+                                <SelectItem value="rad">rad</SelectItem>
+                                <SelectItem value="grad">grad</SelectItem>
+                                <SelectItem value="turn">turn</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                         </div>
-
-                        {/* Padding Right */}
-                        <div className="absolute right-[-19px] top-1/2 transform -translate-y-1/2 rotate-90 origin-center border border-secondary-bg rounded-lg">
-                          <div className="flex items-center">
-                            <span 
-                              className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
-                              onMouseDown={(e) => handleSpacingMouseDown('paddingRight', e)}
-                              title="Click and drag to change padding-right"
-                            >
-                              ⇔
-                            </span>
-                            <input
-                              type="text"
-                              min="0"
-                              value={spacingValues.paddingRight?.value || 0}
-                              onChange={(e) => handleSpacingValueChange('paddingRight', parseFloat(e.target.value) || 0)}
-                              className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
-                              style={{ width: `${Math.max(2, String(spacingValues.paddingRight?.value || 0).length)}ch` }}
-                            />
-                            <Select 
-                              value={spacingValues.paddingRight?.unit || 'px'} 
-                              onValueChange={(value) => handleSpacingUnitChange('paddingRight', value)}
-                            >
-                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-primary-bg border-secondary-bg">
-                                <SelectItem value="px">px</SelectItem>
-                                <SelectItem value="%">%</SelectItem>
-                                <SelectItem value="em">em</SelectItem>
-                                <SelectItem value="rem">rem</SelectItem>
-                                <SelectItem value="vw">vw</SelectItem>
-                                <SelectItem value="vh">vh</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        {/* Element center */}
-                        <div className="bg-primary-bg p-8 rounded text-center border border-secondary-bg min-h-[80px] flex flex-col justify-center">
-                          <div className="text-xs text-gray-300 mb-1 font-medium">
-                            {selectedElement?.tagName.toLowerCase() || 'element'}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            {editableValues.width.value}{editableValues.width.unit} × {editableValues.height.value}{editableValues.height.unit}
-                          </div>
-                        </div>
-
-                        {/* Padding label */}
-                        <span className="absolute top-1 left-2 text-xs text-gray-400 font-medium">Padding</span>
                       </div>
 
-                      {/* Margin label */}
-                      <span className="absolute top-1 left-2 text-xs text-gray-400 font-medium">Margin</span>
+                      {/* Width, Height, Border-radius */}
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        {/* Width */}
+                        <div className="space-y-1">
+                          <label className="text-gray-400">W</label>
+                          <div className="relative flex border-2 border-secondary-bg rounded-lg">
+                            <input
+                              type="text"
+                              value={editableValues.width.value}
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                setEditableValues(prev => ({ 
+                                  ...prev, 
+                                  width: { ...prev.width, value: newValue }
+                                }));
+                                if (selectedElement) {
+                                  const fullValue = newValue === 'auto' ? 'auto' : `${newValue}${editableValues.width.unit}`;
+                                  selectedElement.style.width = fullValue;
+                                }
+                              }}
+                              className="flex-1  text-white px-2 py-1  text-xs bg-none border border-none  border-r-0 focus:border-green-500 focus:outline-none w-full"
+                              placeholder="auto"
+                            />
+                            <Select 
+                              value={editableValues.width.unit}
+                              
+                              onValueChange={(newUnit) => {
+                                setEditableValues(prev => ({ 
+                                  ...prev, 
+                                  width: { ...prev.width, unit: newUnit }
+                                }));
+                                if (selectedElement && editableValues.width.value !== 'auto') {
+                                  selectedElement.style.width = `${editableValues.width.value}${newUnit}`;
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none  focus:border-green-500 focus:outline-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-primary-bg border-secondary-bg ">
+                                <SelectItem value="px" className="text-white hover:bg-gray-700">px</SelectItem>
+                                <SelectItem value="%" className="text-white hover:bg-gray-700">%</SelectItem>
+                                <SelectItem value="em" className="text-white hover:bg-gray-700">em</SelectItem>
+                                <SelectItem value="rem" className="text-white hover:bg-gray-700">rem</SelectItem>
+                                <SelectItem value="vw" className="text-white hover:bg-gray-700">vw</SelectItem>
+                                <SelectItem value="vh" className="text-white hover:bg-gray-700">vh</SelectItem>
+                                <SelectItem value="auto" className="text-white hover:bg-gray-700">auto</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* Height */}
+                        <div className="space-y-1">
+                          <label className="text-gray-400">H</label>
+                          <div className="relative flex border-2 border-secondary-bg rounded-lg">
+                            <input
+                              type="text"
+                              value={editableValues.height.value}
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                setEditableValues(prev => ({ 
+                                  ...prev, 
+                                  height: { ...prev.height, value: newValue }
+                                }));
+                                if (selectedElement) {
+                                  const fullValue = newValue === 'auto' ? 'auto' : `${newValue}${editableValues.height.unit}`;
+                                  selectedElement.style.height = fullValue;
+                                }
+                              }}
+                              className="flex-1 text-white px-2 py-1 text-xs bg-none border border-none border-r-0 focus:border-green-500 focus:outline-none w-full"
+                              placeholder="auto"
+                            />
+                            <Select 
+                              value={editableValues.height.unit}
+                              onValueChange={(newUnit) => {
+                                setEditableValues(prev => ({ 
+                                  ...prev, 
+                                  height: { ...prev.height, unit: newUnit }
+                                }));
+                                if (selectedElement && editableValues.height.value !== 'auto') {
+                                  selectedElement.style.height = `${editableValues.height.value}${newUnit}`;
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-primary-bg border-secondary-bg">
+                                <SelectItem value="px" className="text-white hover:bg-gray-700">px</SelectItem>
+                                <SelectItem value="%" className="text-white hover:bg-gray-700">%</SelectItem>
+                                <SelectItem value="em" className="text-white hover:bg-gray-700">em</SelectItem>
+                                <SelectItem value="rem" className="text-white hover:bg-gray-700">rem</SelectItem>
+                                <SelectItem value="vw" className="text-white hover:bg-gray-700">vw</SelectItem>
+                                <SelectItem value="vh" className="text-white hover:bg-gray-700">vh</SelectItem>
+                                <SelectItem value="auto" className="text-white hover:bg-gray-700">auto</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* Border Radius */}
+                        <div className="space-y-1">
+                          <label className="text-gray-400">R</label>
+                          <div className="relative flex border-2 border-secondary-bg rounded-lg">
+                            <input
+                              type="text"
+                              value={editableValues.borderRadius.value}
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                setEditableValues(prev => ({ 
+                                  ...prev, 
+                                  borderRadius: { ...prev.borderRadius, value: newValue }
+                                }));
+                                if (selectedElement) {
+                                  selectedElement.style.borderRadius = `${newValue}${editableValues.borderRadius.unit}`;
+                                }
+                              }}
+                              className="flex-1 text-white px-2 py-1 text-xs bg-none border border-none border-r-0 focus:border-green-500 focus:outline-none w-full"
+                              placeholder="0"
+                            />
+                            <Select 
+                              value={editableValues.borderRadius.unit}
+                              onValueChange={(newUnit) => {
+                                setEditableValues(prev => ({ 
+                                  ...prev, 
+                                  borderRadius: { ...prev.borderRadius, unit: newUnit }
+                                }));
+                                if (selectedElement) {
+                                  selectedElement.style.borderRadius = `${editableValues.borderRadius.value}${newUnit}`;
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-primary-bg border-secondary-bg">
+                                <SelectItem value="px" className="text-white hover:bg-gray-700">px</SelectItem>
+                                <SelectItem value="%" className="text-white hover:bg-gray-700">%</SelectItem>
+                                <SelectItem value="em" className="text-white hover:bg-gray-700">em</SelectItem>
+                                <SelectItem value="rem" className="text-white hover:bg-gray-700">rem</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CSS Pro Style Spacing Visualizer */}
+                    <div className={`${styles.cssProVisualSpacingBox} ${styles.cssProVisualAccordionContent} border border-secondary-bg css-pro-visual-spacing-box`}>
+                      {/* Margin container */}
+                      <div className="css-pro-visual-spacing-placeholder horizontal top"></div>
+                      <div className="css-pro-visual-spacing-placeholder horizontal bottom"></div>
+                      <div className='css-pro-visual-spacing-placeholder vertical left'></div>
+                      <div className='css-pro-visual-spacing-placeholder vertical right'></div>
+                      <div className="bg-secondary-bg p-6 rounded-lg ">
+                        
+                        {/* Margin Top */}
+                        <label 
+                          data-css-pro-edit-rule="margin-top" 
+                          onMouseDown={(e) => handleSpacingMouseDown('marginTop', e)} 
+                          data-css-pro-input 
+                          className="absolute top-2 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg"
+                        >
+                          <span 
+                            className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                            title="Click and drag to change margin-top"
+                          >
+                            ⇕
+                          </span>
+                          <div className="flex items-center gap-1 h-full">
+                            {/* Input con botones +/- personalizado */}
+                            <div className="flex items-center  rounded  h-full w-full">
+                              <button
+                                type="button"
+                                onClick={() => handleSpacingValueChange('marginTop', Math.max(-999, (spacingValues.marginTop?.value || 0) - 1))}
+                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white transition-colors cursor-pointer hover:bg-secondary-bg"
+                              >
+                                <MinusIcon size={12} />
+                              </button>
+                              <input
+                                type="text"
+                                value={spacingValues.marginTop?.value || 0}
+                                onChange={(e) => handleSpacingValueChange('marginTop', parseFloat(e.target.value) || 0)}
+                                className="bg-transparent text-white text-xs w-full text-center border-none outline-none w-full"
+                                
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleSpacingValueChange('marginTop', Math.min(999, (spacingValues.marginTop?.value || 0) + 1))}
+                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white transition-colors cursor-pointer hover:bg-secondary-bg"
+                              >
+                                <PlusIcon size={12} />
+                              </button>
+                            </div>
+                            <Select 
+                              value={spacingValues.marginTop?.unit || 'px'} 
+                              onValueChange={(value) => handleSpacingUnitChange('marginTop', value)}
+                            >
+                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-primary-bg border-secondary-bg">
+                                <SelectItem value="auto">auto</SelectItem>
+                                <SelectItem value="px">px</SelectItem>
+                                <SelectItem value="%">%</SelectItem>
+                                <SelectItem value="em">em</SelectItem>
+                                <SelectItem value="rem">rem</SelectItem>
+                                <SelectItem value="vw">vw</SelectItem>
+                                <SelectItem value="vh">vh</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </label>
+
+                        {/* Margin Bottom */}
+                        <label 
+                          data-css-pro-edit-rule="margin-bottom" 
+                          onMouseDown={(e) => handleSpacingMouseDown('marginBottom', e)} 
+                          data-css-pro-input 
+                          className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg"
+                        >
+                          <span 
+                            className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                            title="Click and drag to change margin-bottom"
+                          >
+                            ⇕
+                          </span>
+                          <div className="flex items-center gap-1  h-full">
+                            {/* Input con botones +/- personalizado */}
+                            <div className="flex items-center  rounded  h-full w-full">
+                              <button
+                                type="button"
+                                onClick={() => handleSpacingValueChange('marginBottom', Math.max(-999, (spacingValues.marginBottom?.value || 0) - 1))}
+                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                              >
+                                <MinusIcon size={12} />
+                              </button>
+                              <input
+                                type="text"
+                                value={spacingValues.marginBottom?.value || 0}
+                                onChange={(e) => handleSpacingValueChange('marginBottom', parseFloat(e.target.value) || 0)}
+                                className="bg-transparent text-white text-xs w-full text-center border-none outline-none"
+                              
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleSpacingValueChange('marginBottom', Math.min(999, (spacingValues.marginBottom?.value || 0) + 1))}
+                                className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                              >
+                                <PlusIcon size={12} />
+                              </button>
+                            </div>
+                            <Select 
+                              value={spacingValues.marginBottom?.unit || 'px'} 
+                              onValueChange={(value) => handleSpacingUnitChange('marginBottom', value)}
+                            >
+                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-primary-bg border-secondary-bg">
+                                <SelectItem value="auto">auto</SelectItem>
+                                <SelectItem value="px">px</SelectItem>
+                                <SelectItem value="%">%</SelectItem>
+                                <SelectItem value="em">em</SelectItem>
+                                <SelectItem value="rem">rem</SelectItem>
+                                <SelectItem value="vh">vh</SelectItem>
+                                <SelectItem value="vw">vw</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </label>
+
+                        {/* Margin Left */}
+                        <label 
+                          data-css-pro-edit-rule="margin-left" 
+                          onMouseDown={(e) => handleSpacingMouseDown('marginLeft', e)} 
+                          data-css-pro-input 
+                          className="absolute left-[-48px] top-[42%] transform -translate-y-[-6%] -rotate-90 origin-center border border-secondary-bg h-[44px] w-[45.035%]"
+                        >
+                          <div className="flex items-center h-full">
+                            <span 
+                              className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                              title="Click and drag to change margin-left"
+                            >
+                              ⇔
+                            </span>
+                            <div className="flex items-center gap-1 h-full">
+                              {/* Input con botones +/- personalizado */}
+                              <div className="flex items-center rounded h-full w-full">
+                                <button
+                                  type="button"
+                                  onClick={() => handleSpacingValueChange('marginLeft', Math.max(-999, (spacingValues.marginLeft?.value || 0) - 1))}
+                                  className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                                >
+                                  <MinusIcon size={12} />
+                                </button>
+                                <input
+                                  type="text"
+                                  value={spacingValues.marginLeft?.value || 0}
+                                  onChange={(e) => handleSpacingValueChange('marginLeft', parseFloat(e.target.value) || 0)}
+                                  className="bg-transparent text-white text-xs w-full text-center border-none outline-none"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleSpacingValueChange('marginLeft', Math.min(999, (spacingValues.marginLeft?.value || 0) + 1))}
+                                  className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                                >
+                                  <PlusIcon size={12} />
+                                </button>
+                              </div>
+                              <Select 
+                                value={spacingValues.marginLeft?.unit || 'px'} 
+                                onValueChange={(value) => handleSpacingUnitChange('marginLeft', value)}
+                              >
+                                <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-primary-bg border-secondary-bg">
+                                  <SelectItem value="auto">auto</SelectItem>
+                                  <SelectItem value="px">px</SelectItem>
+                                  <SelectItem value="%">%</SelectItem>
+                                  <SelectItem value="em">em</SelectItem>
+                                  <SelectItem value="rem">rem</SelectItem>
+                                  <SelectItem value="vw">vw</SelectItem>
+                                  <SelectItem value="vh">vh</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </label>
+
+                        {/* Margin Right */}
+                        <label 
+                          data-css-pro-edit-rule="margin-right" 
+                          onMouseDown={(e) => handleSpacingMouseDown('marginRight', e)} 
+                          data-css-pro-input 
+                          className="absolute right-1 top-1/2 transform -translate-[101px] rotate-90 origin-center border border-secondary-bg h-[44px] w-[45.035%] top-[213px] right-[-148px]"
+                        >
+                          <div className="flex items-center">
+                            <span 
+                              className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                              title="Click and drag to change margin-right"
+                            >
+                              ⇔
+                            </span>
+                            <div className="flex items-center gap-1 h-full">
+                              {/* Input con botones +/- personalizado */}
+                              <div className="flex items-center rounded h-full w-full">
+                                <button
+                                  type="button"
+                                  onClick={() => handleSpacingValueChange('marginRight', Math.max(-999, (spacingValues.marginRight?.value || 0) - 1))}
+                                  className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                                >
+                                  <MinusIcon size={12} />
+                                </button>
+                                <input
+                                  type="text"
+                                  value={spacingValues.marginRight?.value || 0}
+                                  onChange={(e) => handleSpacingValueChange('marginRight', parseFloat(e.target.value) || 0)}
+                                  className="bg-transparent text-white text-xs w-full text-center border-none outline-none"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleSpacingValueChange('marginRight', Math.min(999, (spacingValues.marginRight?.value || 0) + 1))}
+                                  className="flex items-center justify-center w-full h-full text-gray-400 hover:text-white hover:bg-gray-600 transition-colors cursor-pointer hover:bg-secondary-bg"
+                                >
+                                  <PlusIcon size={12} />
+                                </button>
+                              </div>
+                              <Select 
+                                value={spacingValues.marginRight?.unit || 'px'} 
+                                onValueChange={(value) => handleSpacingUnitChange('marginRight', value)}
+                              >
+                                <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-primary-bg border-secondary-bg">
+                                  <SelectItem value="auto">auto</SelectItem>
+                                  <SelectItem value="px">px</SelectItem>
+                                  <SelectItem value="%">%</SelectItem>
+                                  <SelectItem value="em">em</SelectItem>
+                                  <SelectItem value="rem">rem</SelectItem>
+                                  <SelectItem value="vw">vw</SelectItem>
+                                  <SelectItem value="vh">vh</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </label>
+
+                        {/* Padding container */}
+                        <div className="bg-secondary-bg p-10 m-8 rounded relative">
+                          
+                          {/* Padding Top */}
+                          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg rounded-lg">
+                            <span 
+                              className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                              onMouseDown={(e) => handleSpacingMouseDown('paddingTop', e)}
+                              title="Click and drag to change padding-top"
+                            >
+                              ⇕
+                            </span>
+                            <input
+                              type="text"
+                              min="0"
+                              value={spacingValues.paddingTop?.value || 0}
+                              onChange={(e) => handleSpacingValueChange('paddingTop', parseFloat(e.target.value) || 0)}
+                              className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
+                              style={{ width: `${Math.max(2, String(spacingValues.paddingTop?.value || 0).length)}ch` }}
+                            />
+                            <Select 
+                              value={spacingValues.paddingTop?.unit || 'px'} 
+                              onValueChange={(value) => handleSpacingUnitChange('paddingTop', value)}
+                            >
+                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-primary-bg border-secondary-bg">
+                                <SelectItem value="px">px</SelectItem>
+                                <SelectItem value="%">%</SelectItem>
+                                <SelectItem value="em">em</SelectItem>
+                                <SelectItem value="rem">rem</SelectItem>
+                                <SelectItem value="vw">vw</SelectItem>
+                                <SelectItem value="vh">vh</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Padding Bottom */}
+                          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex items-center border border-secondary-bg rounded-lg">
+                            <span 
+                              className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                              onMouseDown={(e) => handleSpacingMouseDown('paddingBottom', e)}
+                              title="Click and drag to change padding-bottom"
+                            >
+                              ⇕
+                            </span>
+                            <input
+                              type="text"
+                              min="0"
+                              value={spacingValues.paddingBottom?.value || 0}
+                              onChange={(e) => handleSpacingValueChange('paddingBottom', parseFloat(e.target.value) || 0)}
+                              className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
+                              style={{ width: `${Math.max(2, String(spacingValues.paddingBottom?.value || 0).length)}ch` }}
+                            />
+                            <Select 
+                              value={spacingValues.paddingBottom?.unit || 'px'} 
+                              onValueChange={(value) => handleSpacingUnitChange('paddingBottom', value)}
+                            >
+                              <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-primary-bg border-secondary-bg">
+                                <SelectItem value="px">px</SelectItem>
+                                <SelectItem value="%">%</SelectItem>
+                                <SelectItem value="em">em</SelectItem>
+                                <SelectItem value="rem">rem</SelectItem>
+                                <SelectItem value="vw">vw</SelectItem>
+                                <SelectItem value="vh">vh</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Padding Left */}
+                          <div className="absolute left-[-19px] top-1/2 transform -translate-y-1/2 -rotate-90 origin-center border border-secondary-bg rounded-lg">
+                            <div className="flex items-center">
+                              <span 
+                                className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                                onMouseDown={(e) => handleSpacingMouseDown('paddingLeft', e)}
+                                title="Click and drag to change padding-left"
+                              >
+                                ⇔
+                              </span>
+                              <input
+                                type="text"
+                                min="0"
+                                value={spacingValues.paddingLeft?.value || 0}
+                                onChange={(e) => handleSpacingValueChange('paddingLeft', parseFloat(e.target.value) || 0)}
+                                className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
+                                style={{ width: `${Math.max(2, String(spacingValues.paddingLeft?.value || 0).length)}ch` }}
+                              />
+                              <Select 
+                                value={spacingValues.paddingLeft?.unit || 'px'} 
+                                onValueChange={(value) => handleSpacingUnitChange('paddingLeft', value)}
+                              >
+                                <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-primary-bg border-secondary-bg">
+                                  <SelectItem value="px">px</SelectItem>
+                                  <SelectItem value="%">%</SelectItem>
+                                  <SelectItem value="em">em</SelectItem>
+                                  <SelectItem value="rem">rem</SelectItem>
+                                  <SelectItem value="vw">vw</SelectItem>
+                                  <SelectItem value="vh">vh</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          {/* Padding Right */}
+                          <div className="absolute right-[-19px] top-1/2 transform -translate-y-1/2 rotate-90 origin-center border border-secondary-bg rounded-lg">
+                            <div className="flex items-center">
+                              <span 
+                                className="cursor-ns-resize text-gray-400 hover:text-white mr-1 text-xs"
+                                onMouseDown={(e) => handleSpacingMouseDown('paddingRight', e)}
+                                title="Click and drag to change padding-right"
+                              >
+                                ⇔
+                              </span>
+                              <input
+                                type="text"
+                                min="0"
+                                value={spacingValues.paddingRight?.value || 0}
+                                onChange={(e) => handleSpacingValueChange('paddingRight', parseFloat(e.target.value) || 0)}
+                                className="bg-transparent text-white text-xs w-8 text-center border-none outline-none"
+                                style={{ width: `${Math.max(2, String(spacingValues.paddingRight?.value || 0).length)}ch` }}
+                              />
+                              <Select 
+                                value={spacingValues.paddingRight?.unit || 'px'} 
+                                onValueChange={(value) => handleSpacingUnitChange('paddingRight', value)}
+                              >
+                                <SelectTrigger className="w-[60px] bg-none text-white px-2 py-1 rounded-r text-xs border-none focus:border-green-500 focus:outline-none">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-primary-bg border-secondary-bg">
+                                  <SelectItem value="px">px</SelectItem>
+                                  <SelectItem value="%">%</SelectItem>
+                                  <SelectItem value="em">em</SelectItem>
+                                  <SelectItem value="rem">rem</SelectItem>
+                                  <SelectItem value="vw">vw</SelectItem>
+                                  <SelectItem value="vh">vh</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          {/* Element center */}
+                          <div className="bg-primary-bg p-8 rounded text-center border border-secondary-bg min-h-[80px] flex flex-col justify-center">
+                            <div className="text-xs text-gray-300 mb-1 font-medium">
+                              {selectedElement?.tagName.toLowerCase() || 'element'}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              {editableValues.width.value}{editableValues.width.unit} × {editableValues.height.value}{editableValues.height.unit}
+                            </div>
+                          </div>
+
+                          {/* Padding label */}
+                          <span className="absolute top-1 left-2 text-xs text-gray-400 font-medium">Padding</span>
+                        </div>
+
+                        {/* Margin label */}
+                        <span className="absolute top-1 left-2 text-xs text-gray-400 font-medium">Margin</span>
+                      </div>
+                    </div>
+                    <Accordion type="single" collapsible>
+                      <AccordionItem className='border-b-2 border-secondary-bg' value="item-1">
+                        <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
+                          <IconBackground stroke={2} size={21} />
+                          Typography
+                        </AccordionTrigger>
+                        <AccordionContent className='px-2 py-2'>
+                          <Typography 
+                            values={typographyValues}
+                            onChange={handleTypographyChange}
+                            onFontSizeChange={handleFontSizeChange}
+                            onFontSizeUnitChange={handleFontSizeUnitChange}
+                          />
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem className='border-b-2 border-secondary-bg ' value="item-2">
+                        <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
+                          <IconSquareRounded stroke={2} size={21} />
+                          Background</AccordionTrigger>
+                        <AccordionContent className='px-2 py-2'>
+                          <Background 
+                            value={backgroundValues}
+                            onChange={handleBackgroundChange}
+                          />
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem className='border-b-2 border-secondary-bg ' value="item-3">
+                        <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
+                          <IconTiltShift stroke={2} size={21}/>
+                          Filters</AccordionTrigger>
+                        <AccordionContent className='px-2 py-2'>
+                          <Filters 
+                            values={filtersValues}
+                            onChange={handleFiltersChange}
+                          />
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem  className='border-b-2 border-secondary-bg ' value="item-4">
+                        <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
+                          <IconBoxPadding stroke={2} size={21}/>
+                          Text shadow</AccordionTrigger>
+                        <AccordionContent className='px-2 py-2'>
+                          <Shadows 
+                            values={shadowsValues}
+                            onChange={handleShadowsChange}
+                          />
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem className='border-b-2 border-secondary-bg' value="item-5">
+                        <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
+                          <IconWashDryShade stroke={2} size={21}/>
+                          Box shadow</AccordionTrigger>
+                        <AccordionContent className='px-2 py-2'>
+                          <BoxShadows 
+                            value={boxShadow}
+                            onChange={handleBoxShadowChange}
+                          />
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem className='border-b-2 border-secondary-bg ' value="item-6">
+                        <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
+                          <IconStackFront stroke={2} size={21}/>
+                          Positioning</AccordionTrigger>
+                        <AccordionContent className='px-2 py-2'>
+                          <Positioning 
+                            values={positioning}
+                            onChange={handlePositioningChange}
+                          />
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem className='border-b-2 border-secondary-bg ' value="item-7">
+                        <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
+                          <IconBorderSides stroke={2} size={21}/>
+                          Border</AccordionTrigger>
+                        <AccordionContent className='px-2 py-2'>
+                          <Border 
+                            values={borderValues}
+                            onChange={handleBorderChange}
+                          />
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem className='border-b-2 border-secondary-bg ' value="item-8">
+                        <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline flex text-left justify-normal mt-2'>
+                          <IconCarouselVertical stroke={2} size={21}/>
+                          Display
+                          </AccordionTrigger>
+                        <AccordionContent className='px-2 py-2'>
+                          <Display 
+                            values={displayValues}
+                            onChange={handleDisplayChange}
+                          />
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </div>
+                ) : activeTab === 'code' ? (
+                  <div className="space-y-4">
+                    <div className="bg-gray-900 p-4 rounded border border-gray-700">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-green-400">Generated CSS</span>
+                        <button 
+                          onClick={() => navigator.clipboard.writeText(generateCSS())}
+                          className="p-1 hover:bg-gray-700 rounded"
+                          title="Copy CSS"
+                        >
+                          <Copy size={12} className="text-gray-400" />
+                        </button>
+                      </div>
+                      <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono overflow-x-auto">
+                        {generateCSS()}
+                      </pre>
                     </div>
                   </div>
-                  <Accordion type="single" collapsible>
-                    <AccordionItem className='border-b-2 border-secondary-bg' value="item-1">
-                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Typography</AccordionTrigger>
-                      <AccordionContent >
-                        <Typography 
-                          values={typographyValues}
-                          onChange={handleTypographyChange}
-                          onFontSizeChange={handleFontSizeChange}
-                          onFontSizeUnitChange={handleFontSizeUnitChange}
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem className='border-b-2 border-secondary-bg ' value="item-2">
-                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Background</AccordionTrigger>
-                      <AccordionContent>
-                        <Background 
-                          value={backgroundValues}
-                          onChange={handleBackgroundChange}
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem className='border-b-2 border-secondary-bg ' value="item-3">
-                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Filters</AccordionTrigger>
-                      <AccordionContent>
-                        <Filters 
-                          values={filtersValues}
-                          onChange={handleFiltersChange}
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem  className='border-b-2 border-secondary-bg ' value="item-4">
-                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Text shadow</AccordionTrigger>
-                      <AccordionContent>
-                        <Shadows 
-                          values={shadowsValues}
-                          onChange={handleShadowsChange}
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem className='border-b-2 border-secondary-bg' value="item-5">
-                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Box shadow</AccordionTrigger>
-                      <AccordionContent>
-                        <BoxShadows 
-                          value={boxShadow}
-                          onChange={handleBoxShadowChange}
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem className='border-b-2 border-secondary-bg ' value="item-6">
-                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Positioning</AccordionTrigger>
-                      <AccordionContent>
-                        <Positioning 
-                          values={positioning}
-                          onChange={handlePositioningChange}
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem className='border-b-2 border-secondary-bg ' value="item-7">
-                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Border</AccordionTrigger>
-                      <AccordionContent>
-                        <Border 
-                          values={borderValues}
-                          onChange={handleBorderChange}
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem className='border-b-2 border-secondary-bg ' value="item-8">
-                      <AccordionTrigger className='px-3 mb-2 cursor-pointer hover:bg-secondary-bg text-[#b1b1b1] !no-underline'>Display</AccordionTrigger>
-                      <AccordionContent>
-                        <Display 
-                          values={displayValues}
-                          onChange={handleDisplayChange}
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </div>
-              ) : activeTab === 'code' ? (
-                <div className="space-y-4">
-                  <div className="bg-gray-900 p-4 rounded border border-gray-700">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-green-400">Generated CSS</span>
-                      <button 
-                        onClick={() => navigator.clipboard.writeText(generateCSS())}
-                        className="p-1 hover:bg-gray-700 rounded"
-                        title="Copy CSS"
-                      >
-                        <Copy size={12} className="text-gray-400" />
-                      </button>
-                    </div>
-                    <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono overflow-x-auto">
-                      {generateCSS()}
-                    </pre>
-                  </div>
-                </div>
-              ) : activeTab === 'html' ? (
-                <div className="space-y-4">
-                  <div className="bg-gray-900 p-4 rounded border border-gray-700">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-blue-400">HTML Structure</span>
-                      <button 
-                        onClick={() => navigator.clipboard.writeText(selectedElement?.outerHTML || '')}
-                        className="p-1 hover:bg-gray-700 rounded"
-                        title="Copy HTML"
-                      >
-                        <Copy size={12} className="text-gray-400" />
-                      </button>
-                    </div>
-                    <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono overflow-x-auto">
-                      {selectedElement?.outerHTML}
-                    </pre>
-                  </div>
-                </div>
-              ) : activeTab === 'chat' ? (
-                <div className="space-y-4">
-                  <div className="bg-gray-900 p-4 rounded border border-gray-700">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-purple-400">AI Chat</span>
-                      <span className="text-xs bg-red-500 text-white px-2 py-1 rounded">NEW</span>
-                    </div>
-                    <div className="text-center text-gray-400 py-8">
-                      <div className="text-2xl mb-2">🤖</div>
-                      <p className="text-sm">AI Chat feature coming soon!</p>
-                      <p className="text-xs mt-2">Ask questions about this element's styling</p>
+                ) : activeTab === 'html' ? (
+                  <div className="space-y-4">
+                    <div className="bg-gray-900 p-4 rounded border border-gray-700">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-blue-400">HTML Structure</span>
+                        <button 
+                          onClick={() => navigator.clipboard.writeText(selectedElement?.outerHTML || '')}
+                          className="p-1 hover:bg-gray-700 rounded"
+                          title="Copy HTML"
+                        >
+                          <Copy size={12} className="text-gray-400" />
+                        </button>
+                      </div>
+                      <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono overflow-x-auto">
+                        {selectedElement?.outerHTML}
+                      </pre>
                     </div>
                   </div>
-                </div>
-              ) : null}
-            </div>
-          )}
-        </div>
+                ) : activeTab === 'chat' ? (
+                  <div className="space-y-4">
+                    <div className="bg-gray-900 p-4 rounded border border-gray-700">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-purple-400">AI Chat</span>
+                        <span className="text-xs bg-red-500 text-white px-2 py-1 rounded">NEW</span>
+                      </div>
+                      <div className="text-center text-gray-400 py-8">
+                        <div className="text-2xl mb-2">🤖</div>
+                        <p className="text-sm">AI Chat feature coming soon!</p>
+                        <p className="text-xs mt-2">Ask questions about this element's styling</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            )}
+   
+        </ScrollArea>
+
       </div>
       
       {/* Instrucciones flotantes */}
