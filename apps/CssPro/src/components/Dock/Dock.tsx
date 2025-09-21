@@ -517,7 +517,7 @@ export default function Dock({
   return (
     <div
       className={`fixed transition-all duration-300 flex items-center gap-4 ${
-        isDraggingDock ? 'shadow-blue-500/50 scale-105' : 'shadow-black/30'
+        isDraggingDock ? 'scale-105 shadow-blue-500/50' : 'shadow-black/30'
       }`}
       style={{
         left: `${dockPosition.x}px`,
@@ -528,18 +528,18 @@ export default function Dock({
       onMouseDown={handleDockDragStart}
     >
       {/* Botones de control principales */}
-      <div className="flex items-center gap-3 bg-gradient-to-r from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl border border-gray-600/40 rounded-3xl p-3 shadow-2xl shadow-black/50">
+      <div className="flex gap-3 items-center p-3 rounded-3xl shadow-2xl backdrop-blur-xl bg-secondary-bg shadow-black/50">
         {/* Botón Stop CSS Pro */}
         <button 
-          className={`relative p-4 rounded-2xl transition-all duration-300 group overflow-hidden ${
+          className={`relative p-3 rounded-2xl transition-all duration-300 group overflow-hidden ${
             !inspectorMode 
-              ? 'bg-gradient-to-br from-red-500/30 via-red-500/20 to-red-600/30 text-red-300 border border-red-400/50 shadow-lg shadow-red-500/30' 
-              : 'text-gray-400 hover:bg-gradient-to-br hover:from-red-500/20 hover:to-red-600/20 hover:text-red-300 hover:border-red-400/30 border border-gray-600/30 hover:shadow-lg hover:shadow-red-500/20'
+              ? 'text-red-300 bg-gradient-to-br border shadow-lg from-red-500/30 via-red-500/20 to-red-600/30 border-red-400/50 shadow-red-500/30' 
+              : 'text-gray-400 border hover:bg-gradient-to-br hover:from-red-500/20 hover:to-red-600/20 hover:text-red-300 hover:border-red-400/30 border-gray-600/30 hover:shadow-lg hover:shadow-red-500/20'
           }`}
           onClick={stopCssPro}
           title="Detener CSS Pro Inspector"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 relative z-10">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
             <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
             <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
             <path d="M13.022 17.945a9.308 9.308 0 0 1 -1.022 .055c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.195 .325 -.394 .636 -.596 .935" />
@@ -548,19 +548,19 @@ export default function Dock({
           </svg>
           
           {/* Efecto de brillo */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-transparent transition-transform duration-700 -translate-x-full via-white/10 group-hover:translate-x-full" />
           
           {/* Indicador de estado mejorado */}
           {!inspectorMode && (
-            <div className="absolute -top-1 -right-1 flex items-center justify-center">
-              <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse shadow-lg shadow-red-500/50" />
-              <div className="absolute w-3 h-3 bg-red-400 rounded-full animate-ping opacity-75" />
+            <div className="flex absolute -top-1 -right-1 justify-center items-center">
+              <div className="w-3 h-3 bg-red-400 rounded-full shadow-lg animate-pulse shadow-red-500/50" />
+              <div className="absolute w-3 h-3 bg-red-400 rounded-full opacity-75 animate-ping" />
             </div>
           )}
         </button>
 
         {/* Separador elegante */}
-        <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-500/50 to-transparent" />
+        <div className="w-px h-10 bg-gradient-to-b from-transparent to-transparent via-gray-500/50" />
 
         {/* Botón Show CSS mejorado */}
         <button 
@@ -591,7 +591,7 @@ export default function Dock({
             strokeLinecap="round" 
             strokeLinejoin="round" 
             className={`transition-all duration-300 relative z-10 ${
-              showCssPanel ? 'rotate-12 scale-110' : 'group-hover:scale-110 group-hover:rotate-6'
+              showCssPanel ? 'scale-110 rotate-12' : 'group-hover:scale-110 group-hover:rotate-6'
             }`}
           >
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -602,30 +602,30 @@ export default function Dock({
           </svg>
           
           {/* Efecto de brillo */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-transparent transition-transform duration-700 -translate-x-full via-white/10 group-hover:translate-x-full" />
           
           {/* Indicadores de estado mejorados */}
           {showCssPanel && (
-            <div className="absolute -top-1 -right-1 flex items-center justify-center">
+            <div className="flex absolute -top-1 -right-1 justify-center items-center">
               <div className="w-4 h-4 bg-blue-400 rounded-full shadow-xl shadow-blue-500/60">
-                <div className="absolute inset-0 bg-blue-300 rounded-full animate-ping opacity-75" />
+                <div className="absolute inset-0 bg-blue-300 rounded-full opacity-75 animate-ping" />
                 <div className="absolute inset-1 bg-white rounded-full opacity-80" />
               </div>
             </div>
           )}
           
           {selectedElement && !showCssPanel && (
-            <div className="absolute -top-1 -right-1 flex items-center justify-center">
-              <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-500/50" />
-              <div className="absolute w-3 h-3 bg-emerald-300 rounded-full animate-ping opacity-75" />
+            <div className="flex absolute -top-1 -right-1 justify-center items-center">
+              <div className="w-3 h-3 bg-emerald-400 rounded-full shadow-lg animate-pulse shadow-emerald-500/50" />
+              <div className="absolute w-3 h-3 bg-emerald-300 rounded-full opacity-75 animate-ping" />
             </div>
           )}
         </button>
       </div>
 
       {/* Dock principal de herramientas mejorado */}
-      <div className="bg-gradient-to-r from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl border border-gray-600/40 rounded-3xl shadow-2xl shadow-black/50 p-3">
-        <div className="flex items-center gap-2 cursor-grab active:cursor-grabbing select-none">
+      <div className="p-3 bg-gradient-to-r rounded-3xl border shadow-2xl backdrop-blur-xl from-gray-900/95 via-gray-800/95 to-gray-900/95 border-gray-600/40 shadow-black/50">
+        <div className="flex gap-2 items-center select-none cursor-grab active:cursor-grabbing">
           {dockTools.map((tool, index) => (
             <React.Fragment key={tool.id}>
               <button
@@ -641,41 +641,41 @@ export default function Dock({
                 title={tool.label}
               >
                 {typeof tool.icon === 'string' ? (
-                  <span className="text-base font-bold transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 relative z-10">{tool.icon}</span>
+                  <span className="relative z-10 text-base font-bold transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">{tool.icon}</span>
                 ) : (
-                  <tool.icon size={18} className="transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 relative z-10" />
+                  <tool.icon size={18} className="relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6" />
                 )}
                 
                 {/* Efecto de brillo */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-transparent transition-transform duration-700 -translate-x-full via-white/10 group-hover:translate-x-full" />
                 
                 {/* Indicador de herramienta activa mejorado */}
                 {tool.active && (
                   <>
-                    <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 flex items-center justify-center">
-                      <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse shadow-lg shadow-blue-500/50" />
-                      <div className="absolute w-3 h-3 bg-blue-300 rounded-full animate-ping opacity-75" />
+                    <div className="flex absolute -top-1 left-1/2 justify-center items-center transform -translate-x-1/2">
+                      <div className="w-3 h-3 bg-blue-400 rounded-full shadow-lg animate-pulse shadow-blue-500/50" />
+                      <div className="absolute w-3 h-3 bg-blue-300 rounded-full opacity-75 animate-ping" />
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-cyan-500/10 rounded-2xl animate-pulse" />
+                    <div className="absolute inset-0 bg-gradient-to-br via-transparent rounded-2xl animate-pulse from-blue-500/10 to-cyan-500/10" />
                   </>
                 )}
 
                 {/* Efecto de hover mejorado */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-white/10 to-white/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-br rounded-2xl opacity-0 transition-all duration-300 from-white/5 via-white/10 to-white/5 group-hover:opacity-100" />
               </button>
               
               {/* Separador elegante */}
               {index === dockTools.length - 2 && (
-                <div className="w-px h-8 bg-gradient-to-b from-transparent via-gray-500/50 to-transparent mx-2" />
+                <div className="mx-2 w-px h-8 bg-gradient-to-b from-transparent to-transparent via-gray-500/50" />
               )}
             </React.Fragment>
           ))}
         </div>
        </div>
       {/* Indicador de arrastre mejorado */}
-      <div className="absolute -top-2 -right-2 flex items-center justify-center">
-        <div className="w-4 h-4 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full opacity-70 shadow-lg shadow-blue-500/40" />
-        <div className="absolute w-4 h-4 bg-blue-300 rounded-full animate-ping opacity-50" />
+      <div className="flex absolute -top-2 -right-2 justify-center items-center">
+        <div className="w-4 h-4 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full shadow-lg opacity-70 shadow-blue-500/40" />
+        <div className="absolute w-4 h-4 bg-blue-300 rounded-full opacity-50 animate-ping" />
       </div>
     </div>
   );

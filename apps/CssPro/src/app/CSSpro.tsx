@@ -37,7 +37,7 @@ import Display, { DisplayValues } from '../components/Display/Display';
 import CustomPickColor from '../components/ui/CustomPickColor';
 import Dock from '../components/Dock/Dock';
 import { DotPattern } from '../components/dot-parttern';
-import { cn } from "@clarity/utils/cn"
+import { cn } from "@/utils/cn"
 // ... (rest of the code remains the same)
 
 

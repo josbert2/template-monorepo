@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Slider } from "./slider"
 import { Input } from "./input"
-import { cn } from "@clarity/utils/cn"
+import { cn } from "@/utils/cn"
 
 export interface SliderWithInputProps {
   value: number[]
@@ -92,7 +92,7 @@ const SliderWithInput = React.forwardRef<HTMLDivElement, SliderWithInputProps>(
         {...props}
       >
         {label && <label className="text-gray-400">{label}</label>}
-       <div className="flex items-center gap-2">
+       <div className="flex gap-2 items-center">
             <Slider
                 className={cn("grow", sliderClassName)}
                 value={value}
@@ -107,7 +107,7 @@ const SliderWithInput = React.forwardRef<HTMLDivElement, SliderWithInputProps>(
             {value.map((val, index) => (
                 <Input
                     key={index}
-                    className={cn("h-8 w-12 px-2 py-1 text-center", inputClassName)}
+                    className={cn("px-2 py-1 w-12 h-8 text-center", inputClassName)}
                     type="text"
                     inputMode="decimal"
                     value={inputValues[index]}

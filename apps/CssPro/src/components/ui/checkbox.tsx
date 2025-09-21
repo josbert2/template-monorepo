@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { CheckIcon } from "lucide-react"
-import { cn } from "@clarity/utils/cn"
+import { cn } from "@/utils/cn"
 
 export interface CheckboxProps {
   id?: string

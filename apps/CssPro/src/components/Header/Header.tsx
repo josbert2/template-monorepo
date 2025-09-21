@@ -2,13 +2,13 @@
 import { useState } from "react";
 import Button from "../CTA/Button";
 import * as Nav from "./NavMenu";            // <- namespace import, imposible que quede undefined
-import { cn } from "@clarity/utils/cn";
+import { cn } from "@/utils/cn"
 
 export default function Header() {
   const logo = 'https://fortify-astro.vercel.app/_astro/logo.K2OIZQC9_T1ydc.svg';
 
   return (
-    <header className="flex justify-between items-center px-6 py-6 container mx-auto">
+    <header className="container flex justify-between items-center px-6 py-6 mx-auto">
       <img src={logo} alt="Logo" />
       <div>
         <Navbar className="top-2" />
@@ -23,7 +23,7 @@ export default function Header() {
 function Navbar({ className }: { className?: string }) {
   const [active, setActive] = useState<string | null>(null);
   return (
-    <div className={cn("fixed top-10 inset-x-0 max-w-2xl mx-auto z-50", className)}>
+    <div className={cn("fixed inset-x-0 top-10 z-50 mx-auto max-w-2xl", className)}>
       <Nav.Menu setActive={setActive}>
         <Nav.MenuItem setActive={setActive} active={active} item="All pages">
           <div className="flex flex-col space-y-4 text-sm">
@@ -35,7 +35,7 @@ function Navbar({ className }: { className?: string }) {
         </Nav.MenuItem>
 
         <Nav.MenuItem setActive={setActive} active={active} item="Feature">
-          <div className="text-sm grid grid-cols-2 gap-10 p-4">
+          <div className="grid grid-cols-2 gap-10 p-4 text-sm">
             <Nav.ProductItem
               title="Algochurn"
               href="https://algochurn.com"
