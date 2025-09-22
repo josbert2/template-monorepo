@@ -56,21 +56,31 @@ export default function ColorPicker({
       pickr
         .on('change', (c: any) => {
           const hex = c.toHEXA().toString();
-          if (btnRef.current) btnRef.current.style.background = hex;
+          if (btnRef.current) {
+            btnRef.current.style.backgroundColor = hex;
+          }
           onChange?.(hex);
         })
         .on('save', (c: any) => {
-          onChange?.(c ? c.toHEXA().toString() : '');
+          const hex = c ? c.toHEXA().toString() : value;
+        
+          if (btnRef.current) {
+            btnRef.current.style.backgroundColor = hex;
+          }
+          onChange?.(hex);
           pickr.hide();
         });
 
       pickrRef.current = pickr;
-      if (btnRef.current) btnRef.current.style.background = value;
+      // Establecer el color inicial
+      if (btnRef.current) {
+        btnRef.current.style.backgroundColor = value;
+      }
     })();
 
     return () => {
       cancelled = true;
-      pickr?.destroy(); // NO destroyAndRemove
+      pickr?.destroy();
       pickrRef.current = null;
     };
   }, [theme]);
@@ -82,8 +92,11 @@ export default function ColorPicker({
       const current = p.getColor()?.toHEXA().toString();
       if (current !== value) {
         p.setColor(value);
-        if (btnRef.current) btnRef.current.style.background = value;
       }
+    }
+    // Siempre actualizar el color del botón
+    if (btnRef.current) {
+      btnRef.current.style.backgroundColor = value;
     }
   }, [value]);
 
@@ -92,8 +105,8 @@ export default function ColorPicker({
       ref={btnRef}
       type="button"
       disabled={disabled}
-      className="h-9 w-9 rounded border border-gray-300"
-      style={{ background: value }}
+      className="h-9 w-9 rounded-lg border-2 border-secondary-bg hover:border-pikend-bg/30 focus:border-pikend-bg/30 focus:outline-none transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+      style={{ backgroundColor: value }}
       aria-label="Selector de color"
     />
   );

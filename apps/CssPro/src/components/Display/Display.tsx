@@ -1,5 +1,6 @@
 import React from 'react';
-import Range from '../ui/Range';
+import CustomSelect from '../ui/custom-select';
+import { SliderWithInput } from '../ui/slider-with-input';
 
 export type DisplayValues = {
   display: 'block' | 'inline' | 'inline-block' | 'flex' | 'inline-flex' | 'grid' | 'inline-grid' | 'contents' | 'none';
@@ -12,32 +13,43 @@ export type DisplayProps = {
 };
 
 export default function Display({ values, onChange }: DisplayProps) {
-  const displays: DisplayValues['display'][] = ['block','inline','inline-block','flex','inline-flex','grid','inline-grid','contents','none'];
+  const displayOptions = [
+    { value: 'block', label: 'block' },
+    { value: 'inline', label: 'inline' },
+    { value: 'inline-block', label: 'inline-block' },
+    { value: 'flex', label: 'flex' },
+    { value: 'inline-flex', label: 'inline-flex' },
+    { value: 'grid', label: 'grid' },
+    { value: 'inline-grid', label: 'inline-grid' },
+    { value: 'contents', label: 'contents' },
+    { value: 'none', label: 'none' }
+  ];
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <label className="text-xs text-gray-400 uppercase tracking-wide">Display</label>
-        <select
+        <label className="text-xs text-gray-400  tracking-wide">Display</label>
+        <CustomSelect
           value={values.display}
-          onChange={(e) => onChange('display', e.target.value as DisplayValues['display'])}
-          className="w-full bg-gray-700 text-white px-3 py-2 rounded text-sm border border-gray-600 focus:border-blue-500 focus:outline-none"
-        >
-          {displays.map(d => (
-            <option key={d} value={d}>{d}</option>
-          ))}
-        </select>
+          onValueChange={(value) => onChange('display', value as DisplayValues['display'])}
+          options={displayOptions}
+          className="w-full"
+        />
       </div>
 
       <div className="space-y-2">
-        <label className="text-xs text-gray-400 uppercase tracking-wide">Opacity</label>
-        <Range
-          label=""
+        <label className="text-xs text-gray-400  tracking-wide">Opacity</label>
+        <SliderWithInput
+          value={[values.opacity]}
+          onValueChange={(v) => onChange('opacity', v[0])}
           min={0}
           max={100}
           step={1}
-          value={values.opacity}
+          className="w-full"
+          inputClassName="h-7 w-12"
+          showTooltip={true}
+          aria-label="Opacity"
           suffix="%"
-          onChange={(v) => onChange('opacity', v)}
         />
       </div>
     </div>

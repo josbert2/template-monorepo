@@ -1,8 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-// ⬇️ usa la ruta real donde guardaste el AdvancedColorPicker
 import AdvancedColorPicker from '../ui/CustomPickColor';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { CustomSelect } from '../ui/custom-select';
 
 type LayerType = 'color' | 'image';
 
@@ -181,40 +184,84 @@ export default function BackgroundLayers({
               <button
                 type="button"
                 onClick={() => updateLayer(layer.id, { enabled: !layer.enabled })}
-                className="text-gray-300"
+                className={`w-8 h-8 rounded-lg border transition-colors flex items-center justify-center ${
+                  layer.enabled 
+                    ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600/30' 
+                    : 'bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700'
+                }`}
                 title={layer.enabled ? 'Hide layer' : 'Show layer'}
               >
                 {layer.enabled ? '👁️' : '🚫'}
               </button>
-              <span className="text-sm text-gray-300">
+              <span className="text-sm text-gray-300 flex-1">
                 {layer.type === 'image'
                   ? `image(${layer.imageUrl || '—'})`
                   : `color(${layer.color})`}
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => moveUp(idx)} className="text-xs text-gray-300">↑</button>
-              <button onClick={() => moveDown(idx)} className="text-xs text-gray-300">↓</button>
-              <button onClick={() => removeLayer(layer.id)} className="text-xs text-red-400">—</button>
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={() => moveUp(idx)} 
+                className="w-7 h-7 rounded-md bg-gray-800 border border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500 transition-colors flex items-center justify-center text-xs"
+                title="Move layer up"
+                disabled={idx === 0}
+              >
+                ↑
+              </button>
+              <button 
+                onClick={() => moveDown(idx)} 
+                className="w-7 h-7 rounded-md bg-gray-800 border border-gray-600 text-gray-300 hover:bg-gray-700 hover:border-gray-500 transition-colors flex items-center justify-center text-xs"
+                title="Move layer down"
+                disabled={idx === layers.length - 1}
+              >
+                ↓
+              </button>
+              <button 
+                onClick={() => removeLayer(layer.id)} 
+                className="w-7 h-7 rounded-md bg-red-900/20 border border-red-700/50 text-red-400 hover:bg-red-900/40 hover:border-red-600 transition-colors flex items-center justify-center text-xs"
+                title="Remove layer"
+              >
+                ×
+              </button>
             </div>
           </div>
 
           {/* Controles según tipo */}
           {layer.type === 'color' && (
-            <div className="mt-3 flex items-start gap-3">
-              {/* AdvancedColorPicker adaptado a capas de color/gradiente */}
-              <div className="min-w-[260px] max-w-[480px] flex-1">
-              <AdvancedColorPicker
-                value={layer.color ?? '#ffffff'}
-                onChange={(css/*, clipboardCss*/) => {
-                  const m = css.backgroundImage.match(
-                    /(linear-gradient\([^)]*\)|radial-gradient\([^)]*\)|conic-gradient\([^)]*\)|rgba?\([^)]*\)|hsla?\([^)]*\)|#[0-9a-fA-F]{3,8})/
-                  );
-                  if (m) updateLayer(layer.id, { color: m[1] });
-                }}
-              />
-              </div>
-              <span className="text-sm text-gray-400 mt-1 select-all">
+            <div className="mt-3 flex items-center gap-3">
+              {/* Bolita de color con tooltip que contiene el AdvancedColorPicker */}
+              <Tooltip
+               
+              >
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-8 h-8 rounded-full border-2 border-gray-600 hover:border-gray-400 transition-colors cursor-pointer shadow-sm flex-shrink-0"
+                    style={{ backgroundColor: layer.color ?? '#ffffff' }}
+                    title="Click to open color picker"
+                  />
+                </TooltipTrigger>
+                <TooltipContent 
+                  side="right" 
+                  sideOffset={10}
+                  className="p-0 border-none bg-transparent shadow-none z-[999999]"
+                  align="start"
+                >
+                  <AdvancedColorPicker
+                    value={layer.color ?? '#ffffff'}
+                 
+                    onChange={(css) => {
+                      const extracted = extractColorOrGradient(css.backgroundImage || css.background || '');
+                      if (extracted) {
+                        updateLayer(layer.id, { color: extracted });
+                      }
+                    }}
+                  />
+                </TooltipContent>
+              </Tooltip>
+              
+              {/* Texto del color actual */}
+              <span className="text-sm text-gray-400 select-all font-mono">
                 {(layer.color ?? '').toUpperCase()}
               </span>
             </div>
@@ -222,62 +269,61 @@ export default function BackgroundLayers({
 
           {layer.type === 'image' && (
             <div className="mt-3 space-y-2">
-              <input
+              <Input
                 type="text"
                 placeholder="Image URL"
                 value={layer.imageUrl ?? ''}
                 onChange={(e) => updateLayer(layer.id, { imageUrl: e.target.value })}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
 
               <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1">
                   <label className="text-xs text-gray-400">Repeat</label>
-                  <select
+                  <CustomSelect
                     value={layer.repeat ?? 'no-repeat'}
-                    onChange={(e) => updateLayer(layer.id, { repeat: e.target.value as any })}
-                    className="w-full px-2 py-2 bg-gray-800 border border-gray-700 rounded text-sm text-white"
-                  >
-                    <option value="no-repeat">No Repeat</option>
-                    <option value="repeat">Repeat</option>
-                    <option value="repeat-x">Repeat X</option>
-                    <option value="repeat-y">Repeat Y</option>
-                    <option value="round">Round</option>
-                    <option value="space">Space</option>
-                  </select>
+                    onValueChange={(value) => updateLayer(layer.id, { repeat: value as any })}
+                    options={[
+                      { value: 'no-repeat', label: 'No Repeat' },
+                      { value: 'repeat', label: 'Repeat' },
+                      { value: 'repeat-x', label: 'Repeat X' },
+                      { value: 'repeat-y', label: 'Repeat Y' },
+                      { value: 'round', label: 'Round' },
+                      { value: 'space', label: 'Space' },
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-xs text-gray-400">Size</label>
-                  <select
+                  <CustomSelect
                     value={layer.size ?? 'cover'}
-                    onChange={(e) => updateLayer(layer.id, { size: e.target.value as any })}
-                    className="w-full px-2 py-2 bg-gray-800 border border-gray-700 rounded text-sm text-white"
-                  >
-                    <option value="auto">Auto</option>
-                    <option value="cover">Cover</option>
-                    <option value="contain">Contain</option>
-                    <option value="100% 100%">Stretch</option>
-                  </select>
+                    onValueChange={(value) => updateLayer(layer.id, { size: value as any })}
+                    options={[
+                      { value: 'auto', label: 'Auto' },
+                      { value: 'cover', label: 'Cover' },
+                      { value: 'contain', label: 'Contain' },
+                      { value: '100% 100%', label: '100% 100%' },
+                    ]}
+                  />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-xs text-gray-400">Position</label>
-                  <select
+                  <CustomSelect
                     value={layer.position ?? 'center'}
-                    onChange={(e) => updateLayer(layer.id, { position: e.target.value as any })}
-                    className="w-full px-2 py-2 bg-gray-800 border border-gray-700 rounded text-sm text-white"
-                  >
-                    <option value="center">Center</option>
-                    <option value="top">Top</option>
-                    <option value="right">Right</option>
-                    <option value="bottom">Bottom</option>
-                    <option value="left">Left</option>
-                    <option value="top left">Top Left</option>
-                    <option value="top right">Top Right</option>
-                    <option value="bottom left">Bottom Left</option>
-                    <option value="bottom right">Bottom Right</option>
-                  </select>
+                    onValueChange={(value) => updateLayer(layer.id, { position: value as any })}
+                    options={[
+                      { value: 'center', label: 'Center' },
+                      { value: 'top', label: 'Top' },
+                      { value: 'right', label: 'Right' },
+                      { value: 'bottom', label: 'Bottom' },
+                      { value: 'left', label: 'Left' },
+                      { value: 'top left', label: 'Top Left' },
+                      { value: 'top right', label: 'Top Right' },
+                      { value: 'bottom left', label: 'Bottom Left' },
+                      { value: 'bottom right', label: 'Bottom Right' },
+                    ]}
+                  />
                 </div>
               </div>
             </div>
@@ -285,37 +331,43 @@ export default function BackgroundLayers({
         </div>
       ))}
 
-      {/* Presets */}
-      <div className="mt-2">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-sm text-gray-300">Presets</span>
-        </div>
-        <div className="grid grid-cols-6 gap-2 max-h-40 overflow-y-auto p-1 rounded bg-gray-900/40 border border-gray-800">
-          {PRESETS.map((bg, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => emit([{ id: crypto.randomUUID(), type: 'color', enabled: true, color: bg }])}
-              className="h-8 w-8 rounded-full border border-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-              style={{ background: bg }}
-              title={`Preset #${i+1}`}
+      {/* Presets de colores comunes */}
+      <div className="space-y-2">
+        <span className="text-sm font-medium text-gray-300">Quick Colors</span>
+        <div className="flex flex-wrap gap-2">
+          {[
+            '#ffffff', '#000000', '#ff0000', '#00ff00', '#0000ff',
+            '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#800080',
+            '#ffc0cb', '#a52a2a', '#808080', '#008000', '#000080'
+          ].map((color) => (
+            <Button
+              key={color}
+              variant="pikend"
+              size="xs"
+              onClick={() => emit([{ ...newColorLayer(), color }, ...layers])}
+              className="w-6 h-6 p-0 rounded-full border-2 border-gray-600 hover:border-gray-400 hover:scale-110 transition-transform"
+              style={{ backgroundColor: color }}
+              title={`Add ${color} layer`}
             />
           ))}
         </div>
       </div>
 
-      {/* Vista previa opcional */}
-      <div className="mt-2 rounded border border-gray-700">
-        <div
-          className="h-24 w-full rounded"
-          style={{
-            backgroundImage:  cssComputed.backgroundImage,
-            backgroundRepeat: cssComputed.backgroundRepeat,
-            backgroundSize:   cssComputed.backgroundSize,
-            backgroundPosition: cssComputed.backgroundPosition,
-          }}
-        />
-      </div>
+      {/* Vista previa de la capa de fondo */}
+      {cssComputed.backgroundImage && cssComputed.backgroundImage !== 'none' && (
+        <div className="space-y-2">
+          <span className="text-sm font-medium text-gray-300">Preview</span>
+          <div
+            className="w-full h-20 rounded-lg border border-gray-700"
+            style={{
+              backgroundImage: cssComputed.backgroundImage,
+              backgroundRepeat: cssComputed.backgroundRepeat,
+              backgroundSize: cssComputed.backgroundSize,
+              backgroundPosition: cssComputed.backgroundPosition,
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

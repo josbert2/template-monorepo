@@ -4,7 +4,7 @@ import * as React from "react"
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 import { Select as SelectPrimitive } from "radix-ui"
 
-import { cn } from "@clarity/utils/cn";
+import { cn } from "@/utils/cn"
 
 function Select({
   ...props
@@ -130,7 +130,7 @@ function SelectSeparator({
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
-      className={cn("bg-border -mx-1 my-1 h-px", className)}
+      className={cn("-mx-1 my-1 h-px bg-border", className)}
       {...props}
     />
   )
@@ -144,7 +144,7 @@ function SelectScrollUpButton({
     <SelectPrimitive.ScrollUpButton
       data-slot="select-scroll-up-button"
       className={cn(
-        "text-muted-foreground/80 flex cursor-default items-center justify-center py-1",
+        "flex justify-center items-center py-1 cursor-default text-muted-foreground/80",
         className
       )}
       {...props}
@@ -162,7 +162,7 @@ function SelectScrollDownButton({
     <SelectPrimitive.ScrollDownButton
       data-slot="select-scroll-down-button"
       className={cn(
-        "text-muted-foreground/80 flex cursor-default items-center justify-center py-1",
+        "flex justify-center items-center py-1 cursor-default text-muted-foreground/80",
         className
       )}
       {...props}

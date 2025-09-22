@@ -1,4 +1,6 @@
 import React from 'react';
+import { Input } from '../ui/input';
+import CustomSelect from '../ui/custom-select';
 
 export type PositioningValues = {
   position: 'static' | 'relative' | 'absolute' | 'fixed' | 'sticky';
@@ -14,36 +16,36 @@ export type PositioningProps = {
 };
 
 export default function Positioning({ values, onChange }: PositioningProps) {
-  const positions: PositioningValues['position'][] = ['static', 'relative', 'absolute', 'fixed', 'sticky'];
-  const handleInput = (prop: keyof PositioningValues) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    onChange(prop, e.target.value);
-  };
+  const positionOptions = [
+    { value: 'static', label: 'static' },
+    { value: 'relative', label: 'relative' },
+    { value: 'absolute', label: 'absolute' },
+    { value: 'fixed', label: 'fixed' },
+    { value: 'sticky', label: 'sticky' }
+  ];
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <label className="text-xs text-gray-400 uppercase tracking-wide">Position</label>
-        <select
+        <label className="text-xs text-gray-400  tracking-wide">Position</label>
+        <CustomSelect
           value={values.position}
-          onChange={handleInput('position')}
-          className="w-full bg-gray-700 text-white px-3 py-2 rounded text-sm border border-gray-600 focus:border-blue-500 focus:outline-none"
-        >
-          {positions.map(p => (
-            <option key={p} value={p}>{p}</option>
-          ))}
-        </select>
+          onValueChange={(value) => onChange('position', value)}
+          options={positionOptions}
+          className="w-full"
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         {(['top','right','bottom','left'] as const).map(side => (
           <div key={side} className="space-y-2">
-            <label className="text-xs text-gray-400 uppercase tracking-wide">{side}</label>
-            <input
+            <label className="text-xs text-gray-400  tracking-wide">{side}</label>
+            <Input
               type="text"
               value={values[side]}
-              onChange={handleInput(side)}
+              onChange={(e) => onChange(side, e.target.value)}
               placeholder="auto | 0 | 10px | 5%"
-              className="w-full bg-gray-700 text-white px-3 py-2 rounded text-sm border border-gray-600 focus:border-blue-500 focus:outline-none"
+              className="w-full"
             />
           </div>
         ))}

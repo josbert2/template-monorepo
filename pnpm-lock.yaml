@@ -35,6 +35,9 @@ importers:
       '@radix-ui/react-accordion':
         specifier: ^1.2.12
         version: 1.2.12(@types/react@18.3.24)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-slot':
+        specifier: ^1.2.3
+        version: 1.2.3(@types/react@18.3.24)(react@18.3.1)
       '@simonwep/pickr':
         specifier: ^1.9.1
         version: 1.9.1
@@ -47,6 +50,12 @@ importers:
       axios:
         specifier: ^1.12.2
         version: 1.12.2
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
       lucide-react:
         specifier: ^0.544.0
         version: 0.544.0(react@18.3.1)
@@ -77,6 +86,9 @@ importers:
       react-fontpicker-ts:
         specifier: ^1.2.0
         version: 1.2.0(react@18.3.1)
+      tailwind-merge:
+        specifier: ^3.2.0
+        version: 3.3.1
       tailwindcss:
         specifier: ^4.1.13
         version: 4.1.13

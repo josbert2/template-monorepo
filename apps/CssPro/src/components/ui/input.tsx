@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { cn } from "@clarity/utils/cn"
+import { cn } from "@/utils/cn"
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {}
@@ -12,7 +12,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <input
         type={type}
         className={cn(
-          "bg-none text-white w-full h-[36px] px-2 py-1 rounded-lg text-xs border-secondary-bg border-2 focus:border-pikend-bg/30 hover:border-pikend-bg/30 focus:outline-none transition-colors placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-50",
+          "px-2 py-1 w-full text-xs text-white bg-none rounded-lg border-2 transition-colors h-[36px] border-secondary-bg focus:border-pikend-bg/30 hover:border-pikend-bg/30 focus:outline-none placeholder:text-gray-400 disabled:cursor-not-allowed disabled:opacity-50",
           className
         )}
         ref={ref}
