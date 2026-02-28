@@ -1,0 +1,6 @@
+# Directorios a ignorar
+dist/
+node_modules/
+
+# Archivos a ignorar
+*.lock
